@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+# Apache profiler PoC script
+# Written by Eldar "WIreghoul" Marcussen - http://www.justanotherhacker.com
+
+use strict;
+use warnings;
+use IO::Socket::INET;
+
+#Should use getopts
+&show_help unless $ARGV[0];
+my $target = $ARGV[0];
+
+
+sub show_help {
+	print "aprof - Apache profiler script\n";
+	print "Written by Eldar \"Wireghoul\" Marcussen - http://www.justanotherhacker.com\n";
+	print "Usage: aprof <hostname>\n";
+	exit;
+}

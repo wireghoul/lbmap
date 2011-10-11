@@ -1,0 +1,4 @@
+localhost:1080
+www.apsis.ch:80
+www.trellian.com:80
+www.perl-community.de:80
