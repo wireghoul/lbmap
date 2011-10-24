@@ -14,22 +14,26 @@ my $sock;
 my $reqs = $dbh->prepare('select * from request');
 $reqs->execute();
 while (my $request = $reqs->fetchrow_hashref()) {
+	print "[*] $request->{'request'}\n"; #need to s/\n/\\r/ etc.
 	my $srv = $dbh->prepare('select * from server');
 	$srv->execute();
 	while (my $row = $srv->fetchrow_hashref()) {
-		print "[*] SERVER> $row->{'hostname'}:$row->{'port'}\n";
+		print "[-] $row->{'hostname'}:$row->{'port'} : ";
 		$sock = IO::Socket::INET->new("$row->{'hostname'}:$row->{'port'}") or warn "Unable to connect to $row->{'hostname'}:$row->{'port'}\n";
 		if ($sock) {
 			alarm 20;
 			eval {
 				print $sock "$request->{'request'}\r\nConnection: Close\r\n\r\n";
-				print "[-] $request->{'request'}:"; #need to s/\n/\\r/ etc..
 				my $response = '';
+				my $httpv = '';
+				my $code = '';
 				while (<$sock>) {
 					$response .= $_;
 				}
-				my $resp = $dbh->prepare('insert into response (server_id, request_id, response, time) VALUES(?, ?, ?, ?)');
-				$resp->execute($row->{'id'}, $request->{'id'}, $response, join(" ",localtime));
+				if ($response =~ m/(HTTP\S+) (\d\d\d) .*/s) { $httpv = $1; $code = $2; }
+				print "$httpv $code";
+				my $resp = $dbh->prepare('insert into response (server_id, request_id, response, time, http_version, code) VALUES(?, ?, ?, ? , ?, ?)');
+				$resp->execute($row->{'id'}, $request->{'id'}, $response, join(" ",localtime), $httpv, $code);
 			};
 			alarm 0;
 			if ($@) {
