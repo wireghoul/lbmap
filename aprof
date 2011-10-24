@@ -5,6 +5,11 @@
 use strict;
 use warnings;
 use IO::Socket::INET;
+use IO::Socket::SSL;
+use Getopt::Long;
+
+my $VERSION = '0.1';
+my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 
 #Should use getopts
 &show_help unless $ARGV[0];
@@ -12,8 +17,8 @@ my $target = $ARGV[0];
 
 
 sub show_help {
-	print "aprof - Apache profiler script\n";
-	print "Written by Eldar \"Wireghoul\" Marcussen - http://www.justanotherhacker.com\n";
-	print "Usage: aprof <hostname>\n";
+	print "aprof - Apache profiler script v $VERSION\n";
+	print "Written by $AUTHOR - http://www.justanotherhacker.com\n";
+	print "Usage: $0 <hostname>\n";
 	exit;
 }
