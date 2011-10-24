@@ -8,7 +8,19 @@ use IO::Socket::SSL;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my $sock;
+my ($sock, $ssl, $port);
+
+$port = 80;
+my $opts = GetOptions(
+	"ssl" => \$ssl,
+	"port=i" => \$port,
+);
+&help unless $ARGV[0];
 
 
 
+
+sub help {
+	print "Usage: $0 <options> host\n";
+	exit;
+}
