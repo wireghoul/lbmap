@@ -5,22 +5,79 @@ use warnings;
 use Getopt::Long;
 use IO::Socket::INET;
 use IO::Socket::SSL;
+use Data::Dumper;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my ($sock, $ssl, $port);
+my ($sock, $ssl, $host, $port, $fp_data);
 
 $port = 80;
 my $opts = GetOptions(
 	"ssl" => \$ssl,
 	"port=i" => \$port,
 );
+
 &help unless $ARGV[0];
-
-
-
+$host = $ARGV[0];
 
 sub help {
 	print "Usage: $0 <options> host\n";
 	exit;
+}
+
+print Dumper($fp_data);
+&lbmap;
+
+sub lbmap {
+	my %rq = %{ $fp_data->{'request'} };
+	foreach my $key (keys( %rq )) {
+		print "[i] $rq{$key}\n";
+		&request($rq{$key});
+	}
+}
+
+sub get_baseline {
+	# Base response for http/0.9 request
+	# Base response for default page
+	# Base response for 404 page
+}
+
+sub request {
+	my $request = shift;
+	my $response = '';
+	&connect;
+	if ($sock) {
+		print $sock $request;
+		while (<$sock>) {
+			$response .= $_;
+		}
+		close ($sock);
+		if ($response =~ /502/ms) {
+			print "[*] PERLBAL detected\n";
+		} else {
+			print "[R] $response\n";
+		}
+	}
+}
+
+sub connect {
+	if ($ssl) {
+		$sock = IO::Socket::SSL->new(
+	                PeerAddr => "$host",
+        	        PeerPort => "$port",
+		) or die "Unable to connect: $!\n";
+	} else {
+		$sock = IO::Socket::INET->new(
+	                PeerAddr => "$host",
+        	        PeerPort => "$port",
+		) or die "Unable to connect: $!\n";
+	}
+}
+
+sub BEGIN {
+	# Fingerprinting data goes here!
+	$fp_data = {
+		'request' => { 'perlbal' => "GET   /   HTTP/1.0\r\nConnection: Close\r\n\r\n" },
+		'response' => { 'perlbal' => '502' },
+	};
 }
