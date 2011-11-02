@@ -9,12 +9,13 @@ use Data::Dumper;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my ($sock, $ssl, $host, $port, $fp_data);
+my ($sock, $ssl, $verbose, $host, $port, $fp_data);
 
 $port = 80;
 my $opts = GetOptions(
 	"ssl" => \$ssl,
 	"port=i" => \$port,
+	"verbose" => \$verbose,
 );
 
 &help unless $ARGV[0];
@@ -25,18 +26,19 @@ sub help {
 	exit;
 }
 
-print Dumper($fp_data);
+#print Dumper($fp_data);
 &lbmap;
 
 sub lbmap {
 	my %rq = %{ $fp_data->{'request'} };
 	foreach my $key (keys( %rq )) {
-		print "[i] $rq{$key}\n";
-		&request($rq{$key});
+		print "[i] $rq{$key}\n" if $verbose;
+		my $resp = &request($rq{$key});
+		&validate($resp,$key);
 	}
 }
 
-sub get_baseline {
+sub get_baseline { #Not needed?
 	# Base response for http/0.9 request
 	# Base response for default page
 	# Base response for 404 page
@@ -52,11 +54,16 @@ sub request {
 			$response .= $_;
 		}
 		close ($sock);
-		if ($response =~ /502/ms) {
-			print "[*] PERLBAL detected\n";
-		} else {
-			print "[R] $response\n";
-		}
+	}
+	return $response;
+}
+
+sub validate {
+	my $response = shift;
+	my $key = shift;
+	my %validator = %{ $fp_data->{'response'} };
+	if ($response =~ /$validator{$key}/) {
+		print "[=] $key\n";
 	}
 }
 
@@ -77,7 +84,15 @@ sub connect {
 sub BEGIN {
 	# Fingerprinting data goes here!
 	$fp_data = {
-		'request' => { 'perlbal' => "GET   /   HTTP/1.0\r\nConnection: Close\r\n\r\n" },
-		'response' => { 'perlbal' => '502' },
+		'request' => { 
+			'perlbal' => "GET   /   HTTP/1.0\r\nConnection: Close\r\n\r\n",
+			'haproxy' => "OPTIONS # VERB\r\nConnection: Close\r\n\r\n", # Need better haproxy detection
+			'pound' => "NINJAS NINJAS NINJAS\r\nConnection: Close\r\n\r\n",
+		},
+		'response' => { 
+			'perlbal' => 'HTTP/... 502', 
+			'haproxy' => 'HTTP/... 400',
+			'pound' => 'HTTP/... 501',
+		},
 	};
 }
