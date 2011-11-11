@@ -11,11 +11,11 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=data.db","","");
 our @reqs;
 require 'req.pl';
 my $sock;
-my $reqs = $dbh->prepare('select * from request');
+my $reqs = $dbh->prepare('select * from request where active = 1');
 $reqs->execute();
 while (my $request = $reqs->fetchrow_hashref()) {
-	print "[*] $request->{'request'}\n"; #need to s/\n/\\r/ etc.
-	my $srv = $dbh->prepare('select * from server');
+	print "\n[*] $request->{'request'}\n"; #need to s/\n/\\r/ etc.
+	my $srv = $dbh->prepare('select * from server where active = 1');
 	$srv->execute();
 	while (my $row = $srv->fetchrow_hashref()) {
 		print "[-] $row->{'hostname'}:$row->{'port'} : ";
