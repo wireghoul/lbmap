@@ -1,3 +1,4 @@
 leaguecraft.com:80
 varnish-cache.org:80
 vox.com:80
+www.linpro.no:80
