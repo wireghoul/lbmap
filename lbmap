@@ -2,6 +2,8 @@
 
 use strict;
 use warnings;
+use lib './lib';
+use lbmap::Signature;
 use Getopt::Long;
 use IO::Socket::INET;
 use IO::Socket::SSL;
