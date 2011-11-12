@@ -18,6 +18,7 @@ my $opts = GetOptions(
 	"ssl" => \$ssl,
 	"port=i" => \$port,
 	"verbose" => \$verbose,
+	"version" => sub { print "lbmap version: $VERSION\n"; exit 0; }
 );
 
 &help unless $ARGV[0];
