@@ -5,10 +5,11 @@ use strict;
 use lib './lib';
 use lbmap::Signature;
 use IO::Socket::INET;
+use lbmap::Requests;
 
 local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
 our @reqs;
-require 'req.pl';
+#require 'req.pl';
 my $sock;
 my $sig = lbmap::Signature->new();
 
