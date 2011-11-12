@@ -28,6 +28,7 @@ if ($sock) {
 			if ($_ =~ /^proxy/i) { print "$_"; }
 			$r .= $_;
 		}
+		if ($r eq '') { warn "Empty response\n"; }
 		$sig->add_response($r);
 	};
 	alarm 0;
@@ -51,6 +52,7 @@ for (my $x = 0; $x <  scalar(@reqs); $x++) {
 					print "$_" if $ENV{'debug'}; 
 				}
 			}
+			if ($r eq '') { warn "Empty response\n"; }
 			$sig->add_response($r);
 		};
 		alarm 0;
