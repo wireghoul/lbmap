@@ -43,15 +43,16 @@ sub add_response {
     my ($self, $http_response) = @_;
     my ($headers, $body);
     my $code = ' ';
-    if ($http_response =~ /^(HTTP\/...) (...)/) {
+    if ($http_response =~ /^(HTTP\/...) (...) (.*)?\r\n/) {
 	$code = $2;
     }
     if (exists($_conversion_table->{$code})) {
         $self->{'signature'} .= $_conversion_table->{$code};
         if ($code eq '503') {
-            warn "Received 503 error - Signature may not be reliable\n";
+            #warn "Received 503 error - Signature may not be reliable\n";
         }
-    } else {	
+    } else {
+	warn "Unknown: $1 $2 $3\n";
         $self->{'signature'} .= '?';
     }
 }
