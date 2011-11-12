@@ -11,12 +11,13 @@ use Data::Dumper;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my ($sock, $ssl, $verbose, $host, $port, $fp_data);
+my ($sock, $ssl, $verbose, $host, $port, $timeout, $fp_data);
 
 $port = 80;
 my $opts = GetOptions(
 	"ssl" => \$ssl,
 	"port=i" => \$port,
+	"timeout" => \$timeout,
 	"verbose" => \$verbose,
 	"version" => sub { print "lbmap version: $VERSION\n"; exit 0; }
 );
@@ -50,7 +51,8 @@ sub get_baseline { #Not needed?
 sub request {
 	my $request = shift;
 	my $response = '';
-	&connect;
+	&connect; 
+	#TODO add timeout here (or before connect?)
 	if ($sock) {
 		print $sock $request;
 		while (<$sock>) {
