@@ -5,7 +5,7 @@ use warnings;
 
 =head1 NAME
 
-WWW::TamperData - Replay tamper data XML files
+lbmap::Signature - Create machine comparable signatures from http fuzzing
 
 =head1 VERSION
 
