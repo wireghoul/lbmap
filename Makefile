@@ -10,9 +10,9 @@ dist: clean $(LIBFILES) $(DISTFILES)
 	mkdir -p lbmap-$(VERSION)/lib
 	cp -f $(DISTFILES) lbmap-$(VERSION)
 	cp -fr $(LIBFILES) lbmap-$(VERSION)/lib
-	#tar zcf graudit-$(VERSION).tar.gz graudit-$(VERSION)
-	#zip -9r graudit-$(VERSION).zip graudit-$(VERSION)
-	#rm -r graudit-$(VERSION)
+	tar zcf lbmap-$(VERSION).tar.gz lbmap-$(VERSION)
+	zip -9r lbmap-$(VERSION).zip lbmap-$(VERSION)
+	rm -r lbmap-$(VERSION)
 
 clean:
 	rm -f lbmap-*.tar.gz lbmap-*.zip
