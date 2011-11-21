@@ -12,6 +12,7 @@ our @reqs;
 #require 'req.pl';
 my $sock;
 my $sig = lbmap::Signature->new();
+my $reqs = lbmap::Requests->new();
 
 my $server = $ARGV[0];
 print "[*] SERVER> $server - ";
@@ -28,7 +29,7 @@ if ($sock) {
 			if ($_ =~ /^proxy/i) { print "$_"; }
 			$r .= $_;
 		}
-		if ($r eq '') { warn "Empty response\n"; }
+		if ($r eq '') { warn "Empty first response\n"; }
 		$sig->add_response($r);
 	};
 	alarm 0;
@@ -37,14 +38,14 @@ if ($sock) {
 	}
 }
 print "$runs\n";
-for (my $x = 0; $x <  scalar(@reqs); $x++) {
+while ($reqs->next) {
 	$sock = IO::Socket::INET->new($server) or warn "Unable to connect to $server\n";
 	if ($sock) {
 		alarm 20;
 		eval {
 			my $r = '';
-			print $sock "$reqs[$x]\r\nConnection: Close\r\n\r\n";
-			print "[-] $reqs[$x]:" if $ENV{'debug'}; #need to s/\n/\\r/ etc..
+			print $sock $reqs->request."\r\nConnection: Close\r\n\r\n";
+			print "[-] ".$reqs->request.":" if $ENV{'debug'}; #need to s/\n/\\r/ etc..
 			while (<$sock>) {
 				$r.= $_;
 				if ($_ =~ /HTTP\/\d\.\d \d\d\d /) { 
@@ -52,7 +53,7 @@ for (my $x = 0; $x <  scalar(@reqs); $x++) {
 					print "$_" if $ENV{'debug'}; 
 				}
 			}
-			if ($r eq '') { warn "Empty response\n"; }
+			if ($r eq '') { warn "Empty response for ".$reqs->request."\n"; }
 			$sig->add_response($r);
 		};
 		alarm 0;
