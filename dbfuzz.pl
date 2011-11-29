@@ -8,8 +8,6 @@ use DBI;
 local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
 my $dbh = DBI->connect("dbi:SQLite:dbname=data.db","","");
 
-our @reqs;
-require 'req.pl';
 my $sock;
 my $reqs = $dbh->prepare('select * from request where active = 1');
 $reqs->execute();
