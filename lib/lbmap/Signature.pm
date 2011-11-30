@@ -41,11 +41,14 @@ sub new {
 
 sub add_response {
     my ($self, $http_response) = @_;
-    my ($headers, $body);
+    #my ($headers, $body);
     my $code = ' ';
     if ($http_response =~ /^(HTTP\/...) (...) (.*)?\r\n/) {
 	$code = $2;
+    } elsif ($http_response eq '') {
+        $code = '';
     }
+    # Defaults to 0.9 response (code = ' ') if neither condition matches <- Bug?
     if (exists($_conversion_table->{$code})) {
         $self->{'signature'} .= $_conversion_table->{$code};
         if ($code eq '503') {
@@ -55,6 +58,11 @@ sub add_response {
 	warn "Unknown: $1 $2 $3\n";
         $self->{'signature'} .= '?';
     }
+}
+
+sub add_timeout {
+    my $self = shift;
+    $self->{'signature'} .= '!';
 }
 
 sub identify {
@@ -81,7 +89,9 @@ sub BEGIN {
     };
     # TODO: Sort this by response code
     $_conversion_table = {
-        ' ' => '0',
+        '' => '0',
+        ' ' => '9',
+        '100' => '1', # 100 continue
         '200' => 'a', # OK
         '301' => 'a', # Permanent redirect
         '302' => 'a', # Temporary redirect
