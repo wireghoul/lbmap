@@ -17,9 +17,9 @@ my $reqs = lbmap::Requests->new();
 my $server = $ARGV[0];
 print "[*] SERVER> $server - ";
 my $runs = "Unknown";
-$sock = IO::Socket::INET->new(PeerAddr => $server, Timeout => 30) or warn "Unable to connect to $server\n";
+$sock = IO::Socket::INET->new(PeerAddr => $server, Timeout => 10) or warn "Unable to connect to $server\n";
 if ($sock) {
-	alarm 60;
+	alarm 20;
 	eval {
 		my $r = '';
 		print $sock "GET / HTTP/1.1\r\nHost: $server\r\nConnection: Close\r\n\r\n";
@@ -53,12 +53,17 @@ while ($reqs->next) {
 					print "$_" if $ENV{'debug'}; 
 				}
 			}
-			if ($r eq '') { warn "Empty response for ".$reqs->request."\n"; }
+			#if ($r eq '') { warn "Empty response for ".$reqs->request."\n"; }
 			$sig->add_response($r);
 		};
 		alarm 0;
 		if ($@) {
-			die unless ( $@ eq "TIMEOUT\n" );
+			if ( $@ eq "TIMEOUT\n" ) {
+				$sig->add_timeout();
+				warn "TIMEOUT\n";
+			} else {
+				die $@;
+			}
 		} 
 		#print "\n";
 		close($sock) or warn "Unable to close socket: $!\n";
