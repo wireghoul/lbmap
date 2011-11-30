@@ -19,7 +19,7 @@ www.apple.com:80
 www.php.net:80
 www.google.com:80
 www.telstra.com:80
-www.zombocom.com:80
+www.zombo.com:80
 www.telenor.no:80
 www.sensis.com.au:80
 www.elegantlogic.com.au:80
