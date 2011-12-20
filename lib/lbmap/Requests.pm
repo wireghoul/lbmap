@@ -56,6 +56,15 @@ sub next {
     }
 }
 
+sub load {
+    my ($self, $file) = @_;
+    if ( -e $file) {
+	require $file;
+	return 1;
+    }
+    return 0;
+}
+
 BEGIN {
     @reqs = (
         " ",
