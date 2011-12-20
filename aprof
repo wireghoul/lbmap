@@ -10,15 +10,42 @@ use Getopt::Long;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
+my ($ssl, $target, $sock);
 
 #Should use getopts
 &show_help unless $ARGV[0];
-my $target = $ARGV[0];
+$target = $ARGV[0];
+&banner;
 
+sub request {
+    my ($target, $request) = @_;
+    my $resp = '';
+    if (&connect($target)) {
+        print $sock $request;
+        while (<$sock>) {
+            $resp .= $_;
+        }
+    }
+    return $resp;
+}
 
+sub connect {
+    my $destination = shift;
+    if ($ssl) {
+	$sock = IO::Socket::SSL->new($destination) or die "Unable to connect tp $destination: $!\n";
+    } else {
+        $sock = IO::Socket::INET->new($destination) or die "Unable to connect tp $destination: $!\n";
+    }
+    return 1 if ($sock);
+}
+       
 sub show_help {
-	print "aprof - Apache profiler script v $VERSION\n";
-	print "Written by $AUTHOR - http://www.justanotherhacker.com\n";
-	print "Usage: $0 <hostname>\n";
-	exit;
+    &banner;
+    print "Usage: $0 <hostname>\n";
+    exit;
+}
+
+sub banner {
+    print "aprof - Apache profiler script v $VERSION\n";
+    print "Written by $AUTHOR - http://www.justanotherhacker.com\n";
 }
