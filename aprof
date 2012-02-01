@@ -20,7 +20,10 @@ $target = $ARGV[0];
 # General stuff here
 print "Analysing: $target\n";
 my $tmp = &check_is_apache;
-print "Server does not appear to be apache\n" && exit unless $tmp;
+if (!$tmp) {
+    print "Server does not appear to be apache\n";
+    exit;
+}
 print "Server signature: Apache$tmp\n";
 
 # Module detection here
