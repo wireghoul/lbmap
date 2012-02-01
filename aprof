@@ -78,10 +78,11 @@ sub check_mod_info {
 
 sub check_mod_status {
     my $response = &request("GET /server-status/ HTTP/1.1\r\nHost: $target");
-    if ( $response =~ m{^HTTP/1.. 403} || $response =~ m{Apache Status}) {
-        print "mod_status detected\n";
+    if ( $response =~ m{^HTTP/1.. 403} ) { 
+        print "mod_status (restricted access) detected\n";
+    } elsif ( $response =~ m{Apache Status} ) {
+        print "mod_status (public access) detected\n";
     }
-
 }
 
 sub check_mod_setenv {
