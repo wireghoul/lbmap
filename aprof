@@ -25,8 +25,14 @@ print "Server signature: Apache$tmp\n";
 
 # Module detection here
 print "Attempting to identify modules:\n";
+&check_default_host;
+&check_mod_alias;
 &check_mod_cgi;
+&check_mod_deflate;
+&check_mod_info;
 &check_mod_php;
+&check_mod_status;
+
 print "--- FIN ---\n";
 
 sub check_is_apache {
@@ -36,9 +42,11 @@ sub check_is_apache {
 }
 
 sub check_default_host {
+    return;
 }
 
 sub check_mod_alias {
+    return;
 }
 
 sub check_mod_php {
@@ -58,15 +66,23 @@ sub check_mod_cgi {
 }
 
 sub check_mod_deflate {
+    return;
 }
 
 sub check_mod_info {
+    return;
 }
 
 sub check_mod_status {
+    my $response = &request("GET /server-status/ HTTP/1.1\r\nHost: $target");
+    if ( $response =~ m{^HTTP/1.. 403} || $response =~ m{Apache Status}) {
+        print "mod_status detected\n";
+    }
+
 }
 
 sub check_mod_setenv {
+    return;
 }
 
 sub request {
