@@ -12,20 +12,74 @@ my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 my ($ssl, $target, $sock);
 
-#Should use getopts
+# Should use getopts
 &show_help unless $ARGV[0];
 $target = $ARGV[0];
 &banner;
 
+# General stuff here
+print "Analysing: $target\n";
+my $tmp = &check_is_apache;
+print "Server does not appear to be apache\n" && exit unless $tmp;
+print "Server signature: Apache$tmp\n";
+
+# Module detection here
+print "Attempting to identify modules:\n";
+&check_mod_cgi;
+&check_mod_php;
+print "--- FIN ---\n";
+
+sub check_is_apache {
+    if ( &request("GET / HTTP/1.1\r\nHost: $target") =~ m{^Server: Apache(.*)$}m ) {
+        return $1;
+    }
+}
+
+sub check_default_host {
+}
+
+sub check_mod_alias {
+}
+
+sub check_mod_php {
+    if ( &request("GET / HTTP/1.1\r\nHost: $target") =~ m{^(X-Powered-By: PHP|Set-Cookie: PHPSESSID|Server: .* PHP/)}m ) {
+        print "mod_php detected\n";
+        return 1;
+    }
+    if ( &request("GETSPHP /index.php HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)} && &request("GETSPHP /notaphp.file HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
+        print "mod_php detected\n";
+    }
+}
+
+sub check_mod_cgi {
+    if ( &request("GETCGI /cgi-bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|403|500)} && &request("GETCGI /notacgi.gob HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
+        print "mod_cgi detected\n";
+    }
+}
+
+sub check_mod_deflate {
+}
+
+sub check_mod_info {
+}
+
+sub check_mod_status {
+}
+
+sub check_mod_setenv {
+}
+
 sub request {
-    my ($target, $request) = @_;
+# Need timeout
+    my $request = shift;
     my $resp = '';
     if (&connect($target)) {
-        print $sock $request;
+        print $sock "$request\r\nConnection: Close\r\n\r\n";
         while (<$sock>) {
             $resp .= $_;
         }
     }
+#    warn "DEBUG:\n".$resp;
     return $resp;
 }
 
@@ -36,6 +90,7 @@ sub connect {
     } else {
         $sock = IO::Socket::INET->new($destination) or die "Unable to connect tp $destination: $!\n";
     }
+    # Reconnect attempts?
     return 1 if ($sock);
 }
        
