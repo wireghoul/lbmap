@@ -10,9 +10,16 @@ use Getopt::Long;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my ($ssl, $target, $sock);
+my ($ssl, $target, $timeout, $sock);
+my $port = 80;
 
-# Should use getopts
+my $opts = GetOptions(
+        "ssl" => \$ssl,
+        "port=i" => \$port,
+        "timeout" => \$timeout,
+        "version" => sub { print "aprof version: $VERSION\n"; exit 0; }
+);
+
 &show_help unless $ARGV[0];
 $target = $ARGV[0];
 &banner;
@@ -98,7 +105,7 @@ sub request {
 # Need timeout
     my $request = shift;
     my $resp = '';
-    if (&connect($target)) {
+    if (&connect($target, $port, $timeout)) {
         print $sock "$request\r\nConnection: Close\r\n\r\n";
         while (<$sock>) {
             $resp .= $_;
@@ -109,11 +116,11 @@ sub request {
 }
 
 sub connect {
-    my $destination = shift;
+    my ($target, $port, $timout) = @_;
     if ($ssl) {
-	$sock = IO::Socket::SSL->new($destination) or die "Unable to connect tp $destination: $!\n";
+	$sock = IO::Socket::SSL->new("$target:$port") or die "Unable to connect to $target: $!\n";
     } else {
-        $sock = IO::Socket::INET->new($destination) or die "Unable to connect tp $destination: $!\n";
+        $sock = IO::Socket::INET->new("$target:$port") or die "Unable to connect to $target: $!\n";
     }
     # Reconnect attempts?
     return 1 if ($sock);
