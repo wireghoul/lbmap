@@ -10,13 +10,14 @@ use Getopt::Long;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my ($ssl, $target, $timeout, $sock);
+my ($ssl, $target, $timeout, $sock, $force);
 my $port = 80;
 
 my $opts = GetOptions(
         "ssl" => \$ssl,
         "port=i" => \$port,
         "timeout" => \$timeout,
+	"force" => \$force,
         "version" => sub { print "aprof version: $VERSION\n"; exit 0; }
 );
 
@@ -26,12 +27,14 @@ $target = $ARGV[0];
 
 # General stuff here
 print "Analysing: $target\n";
-my $tmp = &check_is_apache;
-if (!$tmp) {
-    print "Server does not appear to be apache\n";
-    exit;
+if (!$force) {
+    my $tmp = &check_is_apache;
+    if (!$tmp) {
+        print "Server does not appear to be apache (run with --force if you think the server is faking it)\n";
+        exit;
+    }
+    print "Server signature: Apache$tmp\n";
 }
-print "Server signature: Apache$tmp\n";
 
 # Module detection here
 print "Attempting to identify modules:\n";
