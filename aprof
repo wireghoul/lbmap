@@ -93,7 +93,13 @@ sub check_mod_status {
     if ( $response =~ m{^HTTP/1.. 403} ) { 
         print "mod_status (restricted access) detected\n";
     } elsif ( $response =~ m{Apache Status} ) {
-        print "mod_status (public access) detected\n";
+        print "mod_status (public access";
+        if ($response =~ m{"ExtendedStatus On</code> directive"}) {
+     	    print " - limited status";
+        } else {
+            print " - full status";
+        }
+	print ") detected\n";
     }
 }
 
