@@ -40,11 +40,16 @@ if (!$force) {
 print "Attempting to identify modules:\n";
 &check_default_host;
 &check_mod_alias;
+&check_mod_caucho;
 &check_mod_cgi;
+&check_mod_dav;
 &check_mod_deflate;
+&check_mod_imagemap;
 &check_mod_info;
 &check_mod_php;
 &check_mod_status;
+&check_mod_setenvif;
+&check_Frontpage;
 
 print "Done!\n\n";
 
@@ -72,22 +77,47 @@ sub check_mod_php {
     }
 }
 
+sub check_mod_caucho {
+    if ( &request("GET /caucho-status HTTP/1.0") =~ m{(Server: .* Resin/|Status : Caucho Servlet Engine)}) {
+        print "mod_caucho detected\n";
+    }
+}
+
 sub check_mod_cgi {
     if ( &request("GETCGI /cgi-bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|403|500)} && &request("GETCGI /notacgi.gob HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
         print "mod_cgi detected\n";
     }
 }
 
+sub check_mod_dav {
+    return;
+}
+
 sub check_mod_deflate {
     return;
 }
 
+sub check_mod_imagemap {
+    if ( &request("GETSMAP /image.map HTTP/1.0") =~ m{^http/1.. (200|404|500)} ) {
+        print "mod_imagemap detected\n";
+    }
+}
+
 sub check_mod_info {
-    my $response = &request("GET /server-info/ HTTP/1.1\r\nHost: $target");
+    my $response = &request("GET /server-info HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) {
         print "mod_info (restricted access) detected\n";
     } elsif ( $response =~ m{Apache Server Information} ) {
-        print "mod_info (public access) detected\n"; #Should be parsed for 100% accurate information
+        print "mod_info (public access) detected\n"; # Should be parsed for 100% accurate information
+    }
+}
+
+sub check_mod_ldap {
+    my $response = &request("GET /ldap-status HTTP/1.1\r\nHost: $target");
+    if ( $response =~ m{^HTTP/1.. 403} ) {
+        print "mod_ldap (restricted access) detected\n";
+    } elsif ( $response =~ m{Apache ldap} ) {
+        print "mod_ldap (public access) detected\n";
     }
 }
 
@@ -106,8 +136,14 @@ sub check_mod_status {
     }
 }
 
-sub check_mod_setenv {
+sub check_mod_setenvif {
     return;
+}
+
+sub check_Frontpage {
+    if ( &request("GET /_vti_bin/ HTTP/1.0") =~ m{^HTTP/1.. 200} ) {
+        print "Frontpage detected\n";
+    }
 }
 
 sub request {
