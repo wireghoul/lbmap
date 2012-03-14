@@ -35,7 +35,7 @@ sub new {
 }
 
 sub parse_uri {
-    my $uri = shift;
+    my ($self, $uri) = @_;
     my @p = (0, '', 80); #Defaults
     $p[0] = 1 if ($uri =~ m!^https://!);
     $uri =~ m!https?://([^:/]+):?(\d+)?/?!;
