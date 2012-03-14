@@ -78,7 +78,7 @@ sub check_mod_php {
 }
 
 sub check_mod_caucho {
-    if ( &request("GET /caucho-status HTTP/1.0") =~ m{(Server: .* Resin/|Status : Caucho Servlet Engine)}) {
+    if ( &request("GET /caucho-status HTTP/1.0") =~ m{(Server: .* Resin/|Status : Caucho Servlet Engine)}m) {
         print "mod_caucho detected\n";
     }
 }
@@ -98,7 +98,7 @@ sub check_mod_deflate {
 }
 
 sub check_mod_imagemap {
-    if ( &request("GETSMAP /image.map HTTP/1.0") =~ m{^http/1.. (200|404|500)} ) {
+    if ( &request("GETSMAP /image.map HTTP/1.0") =~ m{^HTTP/1.. (200|404|500)} ) {
         print "mod_imagemap detected\n";
     }
 }
@@ -121,16 +121,22 @@ sub check_mod_ldap {
     }
 }
 
+sub check_mod_qos {
+    if ( &request("GET /qos HTTP/1.0") =~ m{^HTTP/1.. (200|403)} ) {
+        print "mod_qos detected\n";
+    }
+}
+
 sub check_mod_status {
     my $response = &request("GET /server-status/ HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) { 
         print "mod_status (restricted access) detected\n";
     } elsif ( $response =~ m{Apache Status} ) {
         print "mod_status (public access";
-        if ($response =~ m{"ExtendedStatus On</code> directive"}) {
-     	    print " - limited status";
+        if ($response !~ m{ExtendedStatus On}) {
+     	    print " - full status";
         } else {
-            print " - full status";
+            print " - limited status";
         }
 	print ") detected\n";
     }
@@ -141,7 +147,7 @@ sub check_mod_setenvif {
 }
 
 sub check_Frontpage {
-    if ( &request("GET /_vti_bin/ HTTP/1.0") =~ m{^HTTP/1.. 200} ) {
+    if ( &request("GET /_vti_bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 200} ) {
         print "Frontpage detected\n";
     }
 }
