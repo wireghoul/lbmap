@@ -5,19 +5,26 @@ use strict;
 use lib './lib';
 use lbmap::Signature;
 use IO::Socket::INET;
+use IO::Socket::SSL;
 use lbmap::Requests;
+use lbmap::lbmap;
 
 local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
-our @reqs;
+#our @reqs;
 #require 'req.pl';
 my $sock;
 my $sig = lbmap::Signature->new();
 my $reqs = lbmap::Requests->new();
+my $lbmap = lbmap::lbmap->new();
 
-my $server = $ARGV[0];
+if (!$ARGV[0]) {
+	print "Usage $0 http://url/\n";
+	exit 1;
+}
+my ($ssl, $server, $port) = $lbmap->parse_uri($ARGV[0]);
 print "[*] SERVER> $server - ";
 my $runs = "Unknown";
-$sock = IO::Socket::INET->new(PeerAddr => $server, Timeout => 10) or warn "Unable to connect to $server\n";
+$sock = IO::Socket::INET->new(PeerAddr => "$server:$port", Timeout => 10) or warn "Unable to connect to $server:$port\n";
 if ($sock) {
 	alarm 20;
 	eval {
@@ -39,18 +46,18 @@ if ($sock) {
 }
 print "$runs\n";
 while ($reqs->next) {
-	$sock = IO::Socket::INET->new($server) or warn "Unable to connect to $server\n";
+	$sock = IO::Socket::INET->new("$server:$port") or warn "Unable to connect to $server:$port\n";
 	if ($sock) {
 		alarm 20;
 		eval {
 			my $r = '';
 			print $sock $reqs->request."\r\nConnection: Close\r\n\r\n";
-			print "[-] ".$reqs->request.":" if $ENV{'debug'}; #need to s/\n/\\r/ etc..
+			print "[-] ".$reqs->request."\n[*] " if $ENV{'debug'}; #need to s/\n/\\r/ etc..
 			while (<$sock>) {
 				$r.= $_;
 				if ($_ =~ /HTTP\/\d\.\d \d\d\d /) { 
 					chomp($_);
-					print "$_" if $ENV{'debug'}; 
+					print "$_\n" if $ENV{'debug'}; 
 				}
 			}
 			#if ($r eq '') { warn "Empty response for ".$reqs->request."\n"; }
