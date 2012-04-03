@@ -67,6 +67,9 @@ sub load {
 
 BEGIN {
     @reqs = (
+	"GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
+    );
+    my @b = (
         " ",
         "/",
         "",
