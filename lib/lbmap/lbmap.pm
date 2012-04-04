@@ -20,6 +20,8 @@ Version 0.1
 # Globals
 our $VERSION = '0.1';
 our $AUTHOR = 'Eldar Marcussen - http://www.justanotherhacker.com';
+# local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
+
 =head1 SYNOPSIS
 
     use lbmap::lbmap
@@ -32,10 +34,11 @@ lbmap::lbmap contains core functions common to all the lbmap utilities.
 =cut
 
 sub new {
-    my ($class) = @_;
+    my ($class, %options) = @_;
     my $self = {};
     my %passive;
-    $self->{'passive'} = %passive;
+    $self->{'timeout'}    = $options{'timeout'} ? $options{'timeout'} : 30;
+    $self->{'passive'}    = {};
     return bless $self, $class;
 }
 
@@ -46,20 +49,25 @@ sub scan {
     my $signature = lbmap::Signature->new;
     while ($requests->next) {
         my $response = $self->_request($requests->request);
+        foreach my $passive (keys(%{ $self->{'passive'} })) {
+            if ($response =~ m/$self->{$passive}{'regex'}/) {
+                $self->{$passive}{'callback'}->($response);
+            }
+        }
         # print $response;
-        $signature->add($response);
+        $signature->add_response($response);
     }
     return $signature->signature();;
 }
 
 sub add_passive_detect {
     my ($self, $name, $regex, $function) = @_;
+    my ($package, $filename, $line) = caller;
     if (exists($self->{'passive'}{$name})) {
-        warn "Overriding existing passive detection $name\n";
+        warn "Overriding existing passive detection $name from $filename line: $line\n";
     }
-    my $caller = caller; #Correct way to find who call the routine ?
     $self->{'passive'}{$name}{'regex'} = $regex;
-    $self->{'passive'}{$name}{'callback'} = "$caller::$function";
+    $self->{'passive'}{$name}{'callback'} = "package::$function";
     return 1;
 }
 
@@ -81,11 +89,21 @@ sub _request {
     my ($self, $request) = @_;
     my $response = '';
     if ( $self->_connect ) {
-        my $socket = $self->{'socket'};
-        # print "Sending $request through $socket\n";
-        print $socket $request;
-        while (<$socket>) {
-            $response .= $_;
+        eval {
+        local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
+        alarm $self->{'timeout'};
+        #eval {
+            my $socket = $self->{'socket'};
+            # print "Sending $request through $socket\n";
+            print $socket $request;
+            while (<$socket>) {
+                $response .= $_;
+            }
+        #};
+        alarm 0;
+        };
+        if ($@) {
+                die unless ( $@ eq "TIMEOUT\n" );
         }
     }
     return $response;
@@ -93,12 +111,14 @@ sub _request {
 
 sub _connect {
     my ($self) = shift;
-    $self->{'socket'} = 'fail';
+    undef $self->{'socket'};
     if ($self->{'ssl'}) {
-        $self->{'socket'} = IO::Socket::SSL->new("$self->{'host'}:$self->{'port'}");
+        $self->{'socket'} = IO::Socket::SSL->new(PeerAddr => "$self->{'host'}:$self->{'port'}", Timeout => 10);
     } else {
-        $self->{'socket'} = IO::Socket::INET->new("$self->{'host'}:$self->{'port'}");
+        $self->{'socket'} = IO::Socket::INET->new(PeerAddr => "$self->{'host'}:$self->{'port'}", Timeout => 10);
     }
+    # Should probably retry a few times before giving up
+    die "Unable to connect to $self->{'host'}:$self->{'port'}\n" unless $self->{'socket'};
     return 1 if $self->{'socket'};
 }
 
