@@ -10,8 +10,6 @@ use lbmap::Requests;
 use lbmap::lbmap;
 
 local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
-#our @reqs;
-#require 'req.pl';
 my $sock;
 my $sig = lbmap::Signature->new();
 my $reqs = lbmap::Requests->new();
@@ -21,7 +19,7 @@ if (!$ARGV[0]) {
 	print "Usage $0 http://url/\n";
 	exit 1;
 }
-my ($ssl, $server, $port) = $lbmap->parse_uri($ARGV[0]);
+my ($ssl, $server, $port) = $lbmap->_parse_uri($ARGV[0]);
 print "[*] SERVER> $server - ";
 my $runs = "Unknown";
 $sock = IO::Socket::INET->new(PeerAddr => "$server:$port", Timeout => 10) or warn "Unable to connect to $server:$port\n";
@@ -31,9 +29,9 @@ if ($sock) {
 		my $r = '';
 		print $sock "GET / HTTP/1.1\r\nHost: $server\r\nConnection: Close\r\n\r\n";
 		while (<$sock>) {
-			if ($_ =~ /^Server: (.*)/) {  $runs = $1; }
-			if ($_ =~ /^Via: (.)/) { print "$_"; }
-			if ($_ =~ /^proxy/i) { print "$_"; }
+			if ($_ =~ /^Server: (.*)/) {  $runs = "$1\n"; }
+			if ($_ =~ /^Via: (.*)/) { $runs .= "$_"; }
+			if ($_ =~ /^proxy(.*)/i) { $runs .= "$_"; }
 			$r .= $_;
 		}
 		if ($r eq '') { warn "Empty first response\n"; }
