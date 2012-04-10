@@ -1,4 +1,3 @@
-
 LBMAP
 
 lbmap is a fingerprinting tool aimed at detecting load balancers, reverse proxies, web application firewalls and other web agents residing in front of web servers.
@@ -6,6 +5,8 @@ lbmap is a fingerprinting tool aimed at detecting load balancers, reverse proxie
 USAGE
 
 lbmap [options] url
+
+
 
 APROF
 
