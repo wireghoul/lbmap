@@ -6,6 +6,7 @@ use IO::Socket::INET;
 use IO::Socket::SSL;;
 use lbmap::Requests;
 use lbmap::Signature;
+use Data::Dumper;
 
 =head1 NAME
 
@@ -36,28 +37,39 @@ lbmap::lbmap contains core functions common to all the lbmap utilities.
 sub new {
     my ($class, %options) = @_;
     my $self = {};
-    my %passive;
+    $self->{'debug'}      = $options{'debug'} ? $options{'debug'} : 0;
     $self->{'timeout'}    = $options{'timeout'} ? $options{'timeout'} : 30;
+    $self->{'reconnect'}  = $options{'reconnect'} ? $options{'reconnect'} : 3;
     $self->{'passive'}    = {};
-    return bless $self, $class;
+    $self->{'backends'}   = {};
+    $self->{'loadbalancer'} = 'N/A';
+    $self->{'WAF'}        = 'N/A';
+    bless $self, $class;
+    $self->_load_passive;
+    return $self;
 }
 
 sub scan {
     my ($self, $target) = @_;
+    my %result;
     ($self->{'ssl'}, $self->{'host'}, $self->{'port'}) = $self->_parse_uri($target);
     my $requests = lbmap::Requests->new;
     my $signature = lbmap::Signature->new;
     while ($requests->next) {
         my $response = $self->_request($requests->request);
-        foreach my $passive (keys(%{ $self->{'passive'} })) {
-            if ($response =~ m/$self->{$passive}{'regex'}/) {
-                $self->{$passive}{'callback'}->($response);
+        foreach my $name (keys(%{ $self->{'passive'} })) {
+            if ($response =~ m/$self->{'passive'}{$name}{'regex'}/) {
+                $self->{'passive'}{$name}{'callback'}->($self, $response);
             }
         }
-        # print $response;
         $signature->add_response($response);
     }
-    return $signature->signature();;
+    $result{'WAF'}        = $self->{'WAF'};
+    $result{'loadbalancer'} = $self->{'loadbalancer'};
+    $result{'backends'}   = $self->{'backends'};
+    $result{'signature'}  = $signature->signature();
+    print "Result object:\n".Dumper(%result) if $self->{'debug'};
+    return %result;
 }
 
 sub add_passive_detect {
@@ -67,9 +79,16 @@ sub add_passive_detect {
         warn "Overriding existing passive detection $name from $filename line: $line\n";
     }
     $self->{'passive'}{$name}{'regex'} = $regex;
-    $self->{'passive'}{$name}{'callback'} = "package::$function";
+    $self->{'passive'}{$name}{'callback'} = $function;
     return 1;
 }
+
+sub add_backend {
+    my ($self, $backend) = @_;
+    return if (exists $self->{'backends'}{$backend});
+    $self->{'backends'}{$backend} = 1;
+}
+    
 
 sub _parse_uri {
     my ($self, $uri) = @_;
@@ -90,17 +109,14 @@ sub _request {
     my $response = '';
     if ( $self->_connect ) {
         eval {
-        local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
-        alarm $self->{'timeout'};
-        #eval {
+            local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
+            alarm $self->{'timeout'};
             my $socket = $self->{'socket'};
-            # print "Sending $request through $socket\n";
             print $socket $request;
             while (<$socket>) {
                 $response .= $_;
             }
-        #};
-        alarm 0;
+            alarm 0;
         };
         if ($@) {
                 die unless ( $@ eq "TIMEOUT\n" );
@@ -112,14 +128,28 @@ sub _request {
 sub _connect {
     my ($self) = shift;
     undef $self->{'socket'};
-    if ($self->{'ssl'}) {
-        $self->{'socket'} = IO::Socket::SSL->new(PeerAddr => "$self->{'host'}:$self->{'port'}", Timeout => 10);
-    } else {
-        $self->{'socket'} = IO::Socket::INET->new(PeerAddr => "$self->{'host'}:$self->{'port'}", Timeout => 10);
+    my $attempt = 0;
+    while ($attempt < $self->{'reconnect'}) {
+        if ($self->{'ssl'}) {
+            $self->{'socket'} = IO::Socket::SSL->new(PeerAddr => "$self->{'host'}:$self->{'port'}", Timeout => 10);
+        } else {
+            $self->{'socket'} = IO::Socket::INET->new(PeerAddr => "$self->{'host'}:$self->{'port'}", Timeout => 10);
+        }
+        return 1 if $self->{'socket'};
+        $attempt++;
+        warn "Unable to connect to $self->{'host'}:$self->{'port'} try #$attempt ... retrying\n";
     }
-    # Should probably retry a few times before giving up
-    die "Unable to connect to $self->{'host'}:$self->{'port'}\n" unless $self->{'socket'};
-    return 1 if $self->{'socket'};
+    die "Can't connect ... exiting\n";
+}
+
+sub _load_passive {
+    my $self = shift;
+    #foreach my $plugin (glob "./lib/lbmap/Passive/*.pm") {
+    #    require $plugin;
+    #}
+    # Hard coded reference to test callbacks
+    use lbmap::Passive::BigIP;
+    my $bigip = lbmap::Passive::BigIP->new($self);
 }
 
 1;

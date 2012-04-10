@@ -2,6 +2,7 @@ package lbmap::Passive::BigIP;
 
 use strict;
 use warnings;
+use lbmap::lbmap;
 
 =head1 NAME
 
@@ -16,33 +17,29 @@ Version 0.1
 # Globals
 our $VERSION = '0.1';
 our $AUTHOR = 'Eldar Marcussen - http://www.justanotherhacker.com';
-=head1 SYNOPSIS
-
-    use lbmap::Passive::BigIP;
-
-    my $foo = lbmap::Passive::BigIP->new();
-    $foo->decode_response($raw_http_response);
-    if ($foo->info()) {
-      print $foo->info();
-    }
 
 =head1 DESCRIPTION
 lbmap::Passive::BigIP decodes F5 BIGIP cookies, such as persistent pool information or routes. 
 =cut
 
 sub new {
-    my ($class) = @_;
+    my ($class, $parent) = @_;
     my $self = {};
-    return bless $self, $class;
+    $self->{'parent'} = $parent;
+    bless $self, $class;
+    $self->{'parent'}->add_passive_detect('test', 'Server: .*', \&decode_bigip );
+    return $self;
 }
 
 
-sub decode_response {
-    my ($self, $http_response) = @_;
-}
-
-sub info {
-    my $self = shift;
+sub decode_bigip {
+    my ($parent, $http_response) = @_;
+    if ($http_response =~ m/Set-Cookie: (BIGip.*)=(\d+)\.(\d+)\.(\d+)/o) {
+        my ($pool, $host, $port, $wat) = ($1, $2, $3, $4);
+        my $backend = join ".", map {hex} reverse ((sprintf "%08x", $host) =~ /../g);
+        $backend.=":".hex join "", reverse((sprintf "%02x", $port) =~ /../g);
+        $parent->add_backend($backend);
+    }
 }
 
 1;
