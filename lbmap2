@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+# HTTP fingerprinting tool
+
+use strict;
+use warnings;
+use Getopt::Long;
+use lib './lib';
+use lbmap::lbmap;
+use Data::Dumper;
+
+my $VERSION = '0.1';
+my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
+my $debug = 0;
+my $opts = GetOptions(
+        "debug" => \$debug,
+        "version" => sub { print "lbmap version: $VERSION\n"; exit 0; }
+);
+
+&show_help unless $ARGV[0];
+&banner;
+my $lbmap = lbmap::lbmap->new('debug' => $debug);
+my %result = $lbmap->scan($ARGV[0]);
+print Dumper(%result);
+
+sub show_help {
+    print "Usage $0 <options> http://somehost/\n";
+    print "Valid options:\n\t--debug\tprints debug information\n\t--version\tprints the lbmap version\n";
+    exit;
+}
+
+sub banner {
+    print "lbmap - http fingerprinting tool\n";
+    print "$AUTHOR - Scanning $ARGV[0]\n";
+}
