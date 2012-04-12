@@ -41,9 +41,10 @@ sub new {
     $self->{'timeout'}    = $options{'timeout'} ? $options{'timeout'} : 30;
     $self->{'reconnect'}  = $options{'reconnect'} ? $options{'reconnect'} : 3;
     $self->{'passive'}    = {};
-    $self->{'backends'}   = {};
-    $self->{'loadbalancer'} = 'N/A';
-    $self->{'WAF'}        = 'N/A';
+    $self->{'result'}   = {};
+    if ($self->{'debug'}) {
+        print "Debug enabled\n";
+    }
     bless $self, $class;
     $self->_load_passive;
     return $self;
@@ -52,21 +53,26 @@ sub new {
 sub scan {
     my ($self, $target) = @_;
     my %result;
+    print "Starting scan\n" if $self->{'debug'};
     ($self->{'ssl'}, $self->{'host'}, $self->{'port'}) = $self->_parse_uri($target);
     my $requests = lbmap::Requests->new;
     my $signature = lbmap::Signature->new;
     while ($requests->next) {
+        print "Sending request [".$requests->{'_rindex'} ."]\n" if $self->{'debug'};
         my $response = $self->_request($requests->request);
+        print "Got response\n" if $self->{'debug'};
         foreach my $name (keys(%{ $self->{'passive'} })) {
+            print "Processing plugin $name\n" if $self->{'debug'};
             if ($response =~ m/$self->{'passive'}{$name}{'regex'}/) {
+                print "Issuing callback for plugin $name\n" if $self->{'debug'};
                 $self->{'passive'}{$name}{'callback'}->($self, $response);
             }
         }
+        print "Processing signature\n" if $self->{'debug'};
         $signature->add_response($response);
     }
-    $result{'WAF'}        = $self->{'WAF'};
-    $result{'loadbalancer'} = $self->{'loadbalancer'};
-    $result{'backends'}   = $self->{'backends'};
+    print " done\n" if $self->{'debug'};
+    %result = %{ $self->{'result'} };
     $result{'signature'}  = $signature->signature();
     print "Result object:\n".Dumper(%result) if $self->{'debug'};
     return %result;
@@ -83,10 +89,9 @@ sub add_passive_detect {
     return 1;
 }
 
-sub add_backend {
-    my ($self, $backend) = @_;
-    return if (exists $self->{'backends'}{$backend});
-    $self->{'backends'}{$backend} = 1;
+sub add_result {
+    my ($self, $category, $value) = @_;
+    $self->{'result'}{$category}{$value}++;
 }
     
 
@@ -119,7 +124,7 @@ sub _request {
             alarm 0;
         };
         if ($@) {
-                die unless ( $@ eq "TIMEOUT\n" );
+                die $@ unless ( $@ eq "TIMEOUT\n" );
         }
     }
     return $response;
@@ -150,6 +155,10 @@ sub _load_passive {
     # Hard coded reference to test callbacks
     use lbmap::Passive::BigIP;
     my $bigip = lbmap::Passive::BigIP->new($self);
+    use lbmap::Passive::Proxy;
+    my $via = lbmap::Passive::Proxy->new($self);
+    use lbmap::Passive::Server;
+    my $server = lbmap::Passive::Server->new($self);
 }
 
 1;
