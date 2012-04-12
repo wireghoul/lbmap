@@ -34,14 +34,13 @@ lbmap::Signature converts HTTP responses to an internal representation of the re
 sub new {
     my ($class) = @_;
     my $self = {};
-    $self->{'signature'} = '';
+    $self->{'signature'} = '01';
     return bless $self, $class;
 }
 
 
 sub add_response {
     my ($self, $http_response) = @_;
-    #my ($headers, $body);
     my $code = ' ';
     my $http_version = '0.9';
     if ($http_response =~ /^(HTTP\/...) (...) (.*)?\r\n/) {
@@ -52,15 +51,20 @@ sub add_response {
     }
     # Defaults to 0.9 response (code = ' ') if neither condition matches
     if (exists($_conversion_table->{$code})) {
-        $self->{'signature'} .= $_conversion_table->{$code};
+        my $rcode = $_conversion_table->{$code};
+        if ($http_version eq 'HTTP/1.1') {
+            $rcode = uc($rcode);
+        }
+        $self->{'signature'} .= $rcode;
         if ($code eq '503') {
            warn "Received 503 error - Signature may not be reliable\n";
         }
     } else {
 	warn "Unknown: $1 $2 $3\n";
-        $self->{'signature'} .= '?';
+        $self->{'signature'} .= '??';
     }
 }
+
 
 sub add_timeout {
     my $self = shift;
@@ -91,23 +95,24 @@ sub BEGIN {
     };
     # TODO: Sort this by response code
     $_conversion_table = {
-        '' => '0',
-        ' ' => '9',
-        '100' => '1', # 100 continue
-        '200' => 'a', # OK
-        '301' => 'a', # Permanent redirect
-        '302' => 'a', # Temporary redirect
-        '404' => 'a', # Page not found
-        '500' => 'X', # Internal server error
-        '503' => 'x', # Usually means missing backend server
-        '403' => 'A', # Denied
-        '501' => 'D', # Method not implemented
-	'405' => 'C', # Method not allowed
-	'400' => 'B', # Bad request (parser)
-        '502' => 't', # Unable to contact gateway
-	'413' => 'l', # Request entity too long
-	'414' => 'L', # Request URI too long
-        '411' => 'n', # Length required
+        '' => '--',
+        ' ' => '99',
+        '100' => 'cc', # 100 continue
+        '200' => 'a0', # OK
+        '301' => 'a1', # Permanent redirect
+        '302' => 'a2', # Temporary redirect
+        '404' => 'a4', # Page not found
+        '500' => 'x0', # Internal server error
+        '503' => 'x3', # Usually means missing backend server
+        '403' => 'd3', # Denied
+        '501' => 'd1', # Method not implemented
+	'405' => 'd5', # Method not allowed
+	'400' => 'bc', # Bad request (parser)
+        '502' => 'x2', # Unable to contact gateway
+        '408' => 'tt', # Timeout (Incomplete request)
+	'413' => 'l3', # Request entity too long
+	'414' => 'l4', # Request URI too long
+        '411' => 'lr', # Length required
     };
 }
          
