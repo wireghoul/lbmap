@@ -27,18 +27,19 @@ sub new {
     my $self = {};
     $self->{'parent'} = $parent;
     bless $self, $class;
-    $self->{'parent'}->add_passive_detect('test', 'Server: .*', \&decode_bigip );
+    $self->{'parent'}->add_passive_detect('BIGipv4', 'Set-Cookie: BIGip.*=\d+\.\d+\.\d+', \&decode_bigipv4 );
     return $self;
 }
 
 
-sub decode_bigip {
+sub decode_bigipv4 {
     my ($parent, $http_response) = @_;
     if ($http_response =~ m/Set-Cookie: (BIGip.*)=(\d+)\.(\d+)\.(\d+)/o) {
         my ($pool, $host, $port, $wat) = ($1, $2, $3, $4);
         my $backend = join ".", map {hex} reverse ((sprintf "%08x", $host) =~ /../g);
         $backend.=":".hex join "", reverse((sprintf "%02x", $port) =~ /../g);
-        $parent->add_backend($backend);
+        $parent->add_result('backend',$backend);
+        $parent->add_result('loadbalancer', 'BIGIP');
     }
 }
 

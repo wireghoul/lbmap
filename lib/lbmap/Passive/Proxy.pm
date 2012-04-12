@@ -1,4 +1,4 @@
-package lbmap::Passive::Via;
+package lbmap::Passive::Proxy;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use lbmap::lbmap;
 
 =head1 NAME
 
-lbmap::Passive::Via - Detects Via proxy headers
+lbmap::Passive::Proxy - Detects proxy headers
 
 =head1 VERSION
 
@@ -19,7 +19,7 @@ our $VERSION = '0.1';
 our $AUTHOR = 'Eldar Marcussen - http://www.justanotherhacker.com';
 
 =head1 DESCRIPTION
-lbmap::Passive::Via detects Via proxy headers
+lbmap::Passive::Proxy detects proxy headers
 =cut
 
 sub new {
@@ -28,14 +28,22 @@ sub new {
     $self->{'parent'} = $parent;
     bless $self, $class;
     $self->{'parent'}->add_passive_detect('Via_header', 'Via: .*', \&detect_via_header );
+    $self->{'parent'}->add_passive_detect('Proxy_header', '[pP]roxy.*', \&detect_proxy_header );
     return $self;
 }
 
 
-sub detact_via_header {
+sub detect_via_header {
     my ($parent, $http_response) = @_;
-    if ($http_response =~ m/Via: (.*)/o) {
+    if ($http_response =~ m/Via: (.*)\r\n/o) {
         $parent->add_result('reverseproxy', $1);
+    }
+}
+
+sub detect_proxy_header {
+    my ($parent, $http_response) = @_;
+    if ($http_response =~ m/ProxyServer: (.*)\r\n/o) {
+        $parent->add_result('proxyserver', $1 );
     }
 }
 
