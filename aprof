@@ -68,12 +68,24 @@ sub check_mod_alias {
 }
 
 sub check_mod_php {
+    my $php = 0;
     if ( &request("GET / HTTP/1.1\r\nHost: $target") =~ m{^(X-Powered-By: PHP|Set-Cookie: PHPSESSID|Server: .* PHP/)}m ) {
         print "mod_php detected\n";
-        return 1;
-    }
-    if ( &request("GETSPHP /index.php HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)} && &request("GETSPHP /notaphp.file HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
+        $php = 1;
+    } elsif ( &request("GETSPHP /index.php HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)} && &request("GETSPHP /notaphp.file HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
         print "mod_php detected\n";
+        $php = 1;
+    }
+    if ($php) {
+        print "Checking what extensions have php bindings:\n";
+        foreach my $ext ('.php','.php3','.php4','.php5','.phtml','.phps') {
+            print "$ext ... ";
+            if (&request("GETSPHP /index$ext HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)}) {
+                print "in use\n"
+            } else {
+                print "not in use\n";
+            }
+        }
     }
 }
 
@@ -108,7 +120,7 @@ sub check_mod_info {
     if ( $response =~ m{^HTTP/1.. 403} ) {
         print "mod_info (restricted access) detected\n";
     } elsif ( $response =~ m{Apache Server Information} ) {
-        print "mod_info (public access) detected\n"; # Should be parsed for 100% accurate information
+        print "mod_info (public access) detected - http://$target:$port/server-info\n"; # Should be parsed for 100% accurate information
     }
 }
 
@@ -138,7 +150,7 @@ sub check_mod_status {
         } else {
             print " - limited status";
         }
-	print ") detected\n";
+	print ") detected http://$target:$port/server-status/\n";
     }
 }
 
