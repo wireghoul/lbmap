@@ -5,7 +5,9 @@
 rm cases/*
 # HTTP 0.9 requests
 echo -ne " \r\n\r\n" > cases/01 
-echo "OPTIONS #\r\n\r\n" > cases/02
+echo -ne "OPTIONS #\r\n\r\n" > cases/02
+echo -ne "OPTIONS * HTTP/1.0\r\n\r\n" > cases/03
+echo -ne "OPTIONS / HTTP/1.0\r\n\r\n" > cases/04
 
 # HTTP 1.0 requests
 echo -ne "12345 GET / HTTP/1.0\r\n\r\n" > cases/10
@@ -20,7 +22,7 @@ perl -e 'print "GET / HTTP/1.1\r\nHost: testtest\r\nConnection: Close"."\r\nX-He
 perl -e 'print "GET / HTTP/1.1\r\nHost: testtest\r\nConnection: Close"."\r\nX-Head: abcdesdds" x 102 ."\r\n\r\n";' > cases/23
 perl -e 'print "GET / HTTP/1.1\r\nHost: testtest\r\nConnection: Close"."\r\nX-Head: abcdesdds" x 405 ."\r\n\r\n";' > cases/24
 perl -e 'print "GET / HTTP/1.1\r\nHost: testtest\r\nConnection: Close\r\nX-Head: "."A" x  5000 ."\r\n\r\n";' > cases/25
-perl -e 'print "GET / HTTP/1.1\r\nHost: testtest\r\nConnection: Close\r\nX-Head: "."A" x  10000 ."\r\n\r\n";' > cases/26
+perl -e 'print "GET / HTTP/1.1\r\nHost: testtest\r\nConnection: Close\r\nX-Head: "."A" x  20000 ."\r\n\r\n";' > cases/26
 
 # Malformed requests
 echo -ne "ALL YOUR BASE ARE BELONG TO US\r\n\r\n" > cases/50
