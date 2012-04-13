@@ -2,7 +2,7 @@
 # lbmap makefile
 ###
 LIBFILES := lib/lbmap/
-DISTFILES := Changelog  lbmap  LICENSE  README htfuzz.pl fuzz
+DISTFILES := Changelog  lbmap  lbmap2 LICENSE  README fuzz aprof
 VERSION=`./lbmap --version | cut -d' ' -f 3`
 .PHONY : clean
 
