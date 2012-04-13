@@ -72,6 +72,7 @@ sub scan {
         $signature->add_response($response);
     }
     print " done\n" if $self->{'debug'};
+    $signature->process($self); #Should probably be more elegant
     %result = %{ $self->{'result'} };
     $result{'signature'}  = $signature->signature();
     print "Result object:\n".Dumper(%result) if $self->{'debug'};
