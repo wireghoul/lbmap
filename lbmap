@@ -93,11 +93,13 @@ sub BEGIN {
 			'perlbal' => "GET   /   HTTP/1.0\r\nConnection: Close\r\n\r\n",
 			'haproxy' => "OPTIONS # VERB\r\nConnection: Close\r\n\r\n", # Need better haproxy detection
 			'pound' => "NINJAS NINJAS NINJAS\r\nConnection: Close\r\n\r\n",
+			'varnish' => "OPTIONS #VERB\r\n\r\n",
 		},
 		'response' => { 
 			'perlbal' => 'HTTP/... 502', 
-			'haproxy' => 'HTTP/... 400',
-			'pound' => 'HTTP/... 501',
+			'haproxy' => 'HTTP/1.0 400',
+			'pound' => 'HTTP/1.0 501',
+                        'varnish' => 'HTTP/1.1 503'
 		},
 	};
 }
