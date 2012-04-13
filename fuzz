@@ -1,9 +1,6 @@
 #!/bin/sh
 rm -f tmp/*.log
-for host in `grep -v '^\#' $1`; do
-# start packet capture
-# tcpdump
-# Run fuzzer
-./htfuzz.pl $host | tee tmp/$host.log
+for host in `grep -v '^\#' $1 | perl -ne 'print "http://$_\n";'`; do
+./lbmap2 $host
 echo "-------"
 done
