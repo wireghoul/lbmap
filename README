@@ -1,17 +1,28 @@
-LBMAP
+Proof of concept scripts for advanced web application fingerprinting, presented at OWASp AppSecAsia 2012.
+These scripts should be considered a PoC or alpha quality. Suggestions, recommendations, signatures, pathces 
+and flames are welcome via github (http://www.github.com/wireghoul/lbmap).
 
+The following tools are included:
+LBMAP (and LBMAP2)
 lbmap is a fingerprinting tool aimed at detecting load balancers, reverse proxies, web application firewalls and other web agents residing in front of web servers.
 
 USAGE
-
 lbmap [options] url
 
-
+OPTIONS
+--debug
+--timeout
+--version
 
 APROF
-
 aprof is a fingerprinting tool capable of remotely detecting which modules an Apache server has loaded.
 
 USAGE
-
 aprof [options] host port
+
+OPTIONS
+--force
+--port
+--ssl
+--timeout
+--version
