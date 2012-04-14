@@ -11,14 +11,16 @@ use Data::Dumper;
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 my $debug = 0;
+my $timeout = 30;
 my $opts = GetOptions(
-        "debug" => \$debug,
-        "version" => sub { print "lbmap version: $VERSION\n"; exit 0; }
+        'debug' => \$debug,
+	'timeout' => \$timeout,
+        'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
 );
 
 &show_help unless $ARGV[0];
 &banner;
-my $lbmap = lbmap::lbmap->new('debug' => $debug);
+my $lbmap = lbmap::lbmap->new('debug' => $debug, 'timeout' => $timeout);
 my %result = $lbmap->scan($ARGV[0]);
 print Dumper(%result);
 
