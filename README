@@ -1,14 +1,14 @@
-Proof of concept scripts for advanced web application fingerprinting, presented at OWASP 
-AppSecAsia 2012. These scripts should be considered a PoC or alpha quality. Suggestions, 
-recommendations, signatures, pathces and flames are welcome via 
+Proof of concept scripts for advanced web application fingerprinting, presented at 
+OWASP AppSecAsia 2012. These scripts should be considered a PoC or alpha quality. 
+Suggestions, recommendations, signatures, pathces and flames are welcome via 
 http://www.github.com/wireghoul/lbmap.
 
 The following tools are included:
 
 LBMAP (and LBMAP2)
 ------------------
-lbmap is a fingerprinting tool aimed at detecting load balancers, reverse proxies, web 
-application firewalls and other web agents residing in front of web servers.
+lbmap is a fingerprinting tool aimed at detecting load balancers, reverse proxies, 
+web application firewalls and other web agents residing in front of web servers.
 
 USAGE
 lbmap [options] url
@@ -18,14 +18,15 @@ OPTIONS
 --timeout
 --version
 
-lbmap is the early version of the PoC and tries to use individual requests to fingerprint. lbmap2 
-is the improved version with support for passive detection, signature based fingerprint and more. 
-The tool currently dumps debugging output of the fingerprinting process until a presentation format
-is decided.
+lbmap is the early version of the PoC and tries to use individual requests to 
+fingerprint. lbmap2 is the improved version with support for passive detection, 
+signature based fingerprint and more. The tool currently dumps debugging output 
+of the fingerprinting process until a presentation format is decided.
 
 APROF
 -----
-aprof is a fingerprinting tool capable of remotely detecting which modules an Apache server has loaded.
+aprof is a fingerprinting tool capable of remotely detecting which modules an 
+Apache server has loaded.
 
 USAGE
 aprof [options] host port
