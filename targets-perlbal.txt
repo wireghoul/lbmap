@@ -1,4 +1,0 @@
-livejournal.com:80
-typepad.com:80
-danga.com:80
-sixapart.com:80

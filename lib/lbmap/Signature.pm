@@ -89,6 +89,7 @@ sub signature {
 sub BEGIN {
     # Load known signatures
     $_known_signatures = {
+	'F5 WAF' =>	'01BCBC--A0--99A0BCA0BCA0BCA0BCBCBCBCBCBCBCBCBCBCBCBCBCA0A0--',
         'Apache' =>	'01A0A0--999999BCD1BCA0A0A0A0L3BCA0A0A0BCA0BCBCA0BCBCA0A099TT',
         'pound' =>	'01A0A0--d1d1d1d1d1d1A0A0d1A0--A0d1A0A0A0A0BCx0A0BCx0d1d1d1--',
         'haproxy' =>	'01A0A0bcbcbcA0bcD1bcA0A0bcA0L3bcbcA0A0bcA0BCbcA0BCbcA0A0A0--',
