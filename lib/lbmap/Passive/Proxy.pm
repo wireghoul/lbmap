@@ -35,7 +35,7 @@ sub new {
 
 sub detect_via_header {
     my ($parent, $http_response) = @_;
-    if ($http_response =~ m/Via: (.*)\r\n/o) {
+    if ($http_response =~ m/\nVia: (.*)\r\n/o) {
         $parent->add_result('reverseproxy', $1);
     }
 }
