@@ -17,20 +17,36 @@ my $opts = GetOptions(
 	'timeout' => \$timeout,
         'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
 );
+my @uris;
 
-&show_help unless $ARGV[0];
-&banner;
-my $lbmap = lbmap::lbmap->new('debug' => $debug, 'timeout' => $timeout);
-my %result = $lbmap->scan($ARGV[0]);
-print Dumper(%result);
+if (! $ARGV[0]) {
+    &show_help;
+} elsif ($ARGV[0] eq '-') {
+    @uris = <STDIN>;
+} elsif ( -e $ARGV[0] ) {
+    open my $ifh, '<', $ARGV[0];
+        @uris = <$ifh>;
+    close $ifh;
+} else {
+    push @uris, $ARGV[0];
+}
+chomp(@uris);
+for my $uri (@uris) {
+    my $lbmap = lbmap::lbmap->new('debug' => $debug, 'timeout' => $timeout);
+    &banner($uri);
+    my %result = $lbmap->scan($uri);
+    print Dumper(%result);
+}
 
 sub show_help {
-    print "Usage $0 <options> http://somehost/\n";
-    print "Valid options:\n\t--debug\tprints debug information\n\t--version\tprints the lbmap version\n";
+    print "Usage $0 <options> target\n";
+    print "Valid options:\n\t--debug\tprints debug information\n\t--timeout\tsets timeout in seconds (defult: 30)\n\t--version\tprints the lbmap version\n";
+    print "Valid target is a single uri (http://example.com), a file (targets.txt) or - to read targets from STDIN\n";
     exit;
 }
 
 sub banner {
+    my $target = shift;
     print "lbmap - http fingerprinting tool\n";
-    print "$AUTHOR - Scanning $ARGV[0]\n";
+    print "$AUTHOR - Scanning $target\n";
 }
