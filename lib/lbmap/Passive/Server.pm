@@ -27,15 +27,21 @@ sub new {
     my $self = {};
     $self->{'parent'} = $parent;
     bless $self, $class;
-    $self->{'parent'}->add_passive_detect('Server_header', 'Server: .*', \&detect_via_header );
+    $self->{'parent'}->add_passive_detect('Server_header', 'Server: .*', \&detect_server_header );
     return $self;
 }
 
-
-sub detect_via_header {
+sub detect_server_header {
     my ($parent, $http_response) = @_;
     if ($http_response =~ m/Server: (.*)\r\n/o) {
         $parent->add_result('webserver', $1);
+    }
+}
+
+sub detect_etag_header {
+    my ($parent, $http_response) = @_;
+    if ($http_response =~ m/ETag: ".+-.+-.+"/) {
+        $parent->add_result('webserver', 'Apache');
     }
 }
 
