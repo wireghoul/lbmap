@@ -79,6 +79,10 @@ sub scan {
     return %result;
 }
 
+sub enumerate {
+    my ($self, $target) = @_;
+}
+
 sub add_passive_detect {
     my ($self, $name, $regex, $function) = @_;
     my ($package, $filename, $line) = caller;
