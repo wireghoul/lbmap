@@ -47,6 +47,7 @@ print "Attempting to identify modules:\n";
 &check_mod_imagemap;
 &check_mod_info;
 &check_mod_php;
+&check_mod_proxy_balancer;
 &check_mod_status;
 &check_mod_setenvif;
 &check_Frontpage;
@@ -163,6 +164,16 @@ sub check_Frontpage {
         print "Frontpage detected\n";
     }
 }
+
+sub check_mod_proxy_balancer {
+    my $response = &request("GET /balancer-manager HTTP/1.1\r\nHost: $target");
+    if ( $response =~ m{^HTTP/1.. 403} ) {
+        print "mod_prxy_balancer (restricted access) detected\n";
+    }# elsif ( $response =~ m{Apache Server Information} ) { #Need to define strings to match
+     #   print "mod_info (public access) detected - http://$target:$port/server-info\n"; # Should be parsed for 100% accurate information
+    #}
+}
+
 
 sub request {
 # Need timeout
