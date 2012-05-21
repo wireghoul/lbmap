@@ -13,9 +13,9 @@ my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 my $debug = 0;
 my $timeout = 30;
 my $opts = GetOptions(
-        'debug' => \$debug,
+	'debug' => \$debug,
 	'timeout' => \$timeout,
-        'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
+	'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
 );
 my @uris;
 
@@ -24,11 +24,22 @@ if (! $ARGV[0]) {
 } elsif ($ARGV[0] eq '-') {
     @uris = <STDIN>;
 } elsif ( -e $ARGV[0] ) {
-    open my $ifh, '<', $ARGV[0];
-        @uris = <$ifh>;
-    close $ifh;
+	 open (URIS, $ARGV[0]);
+	 while (<URIS>) {
+		chomp;
+		my $uri = $_;
+		if ($uri !~ /^http/) {
+			$uri = 'http://' . $uri;
+		}
+		push @uris, $uri;
+	 }
+	 close (URIS); 
 } else {
-    push @uris, $ARGV[0];
+	my $uri = $ARGV[0];
+	if ($uri !~ /^http/) {
+		$uri = 'http://' . $uri;
+	}
+    push @uris, $uri;
 }
 chomp(@uris);
 for my $uri (@uris) {
