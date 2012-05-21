@@ -103,6 +103,8 @@ sub add_result {
 sub _parse_uri {
     my ($self, $uri) = @_;
     my @p = (0, '', 80); #Defaults
+    # Quick fix to handle uri's without protocol designation
+    $uri = "http://$uri" if ($uri !~ m!://!);
     $p[0] = 1 if ($uri =~ m!^https://!);
     $uri =~ m!https?://([^:/]+):?(\d+)?/?!;
     $p[1] = $1;
