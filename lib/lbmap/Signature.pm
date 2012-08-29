@@ -103,6 +103,7 @@ sub BEGIN {
         '200' => 'a0', # OK
         '301' => 'a1', # Permanent redirect
         '302' => 'a2', # Temporary redirect
+	'303' => 'a3', # Redirect to GET
         '404' => 'a4', # Page not found
         '500' => 'x0', # Internal server error
         '503' => 'x3', # Usually means missing backend server
