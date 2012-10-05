@@ -112,6 +112,7 @@ sub BEGIN {
 	'405' => 'd5', # Method not allowed
 	'400' => 'bc', # Bad request (parser)
         '502' => 'x2', # Unable to contact gateway
+	'505' => 'x5', # HTTP version not supported
         '408' => 'tt', # Timeout (Incomplete request)
 	'413' => 'l3', # Request entity too long
 	'414' => 'l4', # Request URI too long
