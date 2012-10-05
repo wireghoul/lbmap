@@ -10,19 +10,16 @@ use Getopt::Long;
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my ($ssl, $target, $timeout, $sock, $force);
-my $port = 80;
+my ($timeout, $sock, $force);
 
 my $opts = GetOptions(
-        "ssl" => \$ssl,
-        "port=i" => \$port,
         "timeout" => \$timeout,
 	"force" => \$force,
         "version" => sub { print "aprof version: $VERSION\n"; exit 0; }
 );
 
 &show_help unless $ARGV[0];
-$target = $ARGV[0];
+my ($ssl, $target, $port) = &_parse_uri($ARGV[0]);
 &banner;
 
 # General stuff here
@@ -199,10 +196,27 @@ sub connect {
     # Reconnect attempts?
     return 1 if ($sock);
 }
+
+sub _parse_uri {
+    my $uri = shift;
+    my @p = (0, '', 80); #Defaults
+    # Quick fix to handle uri's without protocol designation
+    $uri = "http://$uri" if ($uri !~ m!://!);
+    $p[0] = 1 if ($uri =~ m!^https://!);
+    $uri =~ m!https?://([^:/]+):?(\d+)?/?!;
+    $p[1] = $1;
+    if ($2) {
+        $p[2]=$2;
+    } elsif ($p[0]) {
+        $p[2]=443;
+    }
+    return @p;
+}
+
        
 sub show_help {
     &banner;
-    print "Usage: $0 <hostname>\n";
+    print "Usage: $0 <uri>\n";
     exit;
 }
 
