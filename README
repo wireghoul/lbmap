@@ -29,11 +29,9 @@ aprof is a fingerprinting tool capable of remotely detecting which modules an
 Apache server has loaded.
 
 USAGE
-aprof [options] host port
+aprof [options] url
 
 OPTIONS
 --force
---port
---ssl
 --timeout
 --version
