@@ -98,7 +98,6 @@ sub add_result {
     my ($self, $category, $value) = @_;
     $self->{'result'}{$category}{$value}++;
 }
-    
 
 sub _parse_uri {
     my ($self, $uri) = @_;
