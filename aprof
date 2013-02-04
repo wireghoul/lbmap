@@ -1,6 +1,6 @@
 #!/usr/bin/perl
-# Apache profiler PoC script
-# Written by Eldar "WIreghoul" Marcussen - http://www.justanotherhacker.com
+# Apache profiler script
+# Written by Eldar "Wireghoul" Marcussen - http://www.justanotherhacker.com
 
 use strict;
 use warnings;
@@ -8,22 +8,26 @@ use IO::Socket::INET;
 use IO::Socket::SSL;
 use Getopt::Long;
 
-my $VERSION = '0.1';
+my $VERSION = '0.2';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
-my ($timeout, $sock, $force);
+my $timeout = 20;
+my ($sock, $force, $path);
 
 my $opts = GetOptions(
-        "timeout" => \$timeout,
-	"force" => \$force,
-        "version" => sub { print "aprof version: $VERSION\n"; exit 0; }
+    "basepath=s" => \$path,
+    "timeout"    => \$timeout,
+    "force"      => \$force,
+    "version"    => sub { print "aprof version: $VERSION\n"; exit 0; },
+    "help"       => sub { &show_help },
 );
 
 &show_help unless $ARGV[0];
 my ($ssl, $target, $port) = &_parse_uri($ARGV[0]);
 &banner;
-
 # General stuff here
-print "Analysing: $target\n";
+$path = "/".$path if $path !~ /^\//;
+$path = $path."/" if $path !~ /\/$/;
+print "Analysing: $target$path\n";
 if (!$force) {
     my $tmp = &check_is_apache;
     if (!$tmp) {
@@ -45,6 +49,8 @@ print "Attempting to identify modules:\n";
 &check_mod_info;
 &check_mod_php;
 &check_mod_proxy_balancer;
+&check_mod_python;
+&check_mod_ruby;
 &check_mod_status;
 &check_mod_setenvif;
 &check_Frontpage;
@@ -52,7 +58,7 @@ print "Attempting to identify modules:\n";
 print "Done!\n\n";
 
 sub check_is_apache {
-    if ( &request("GET / HTTP/1.1\r\nHost: $target") =~ m{^Server: Apache(.*)$}m ) {
+    if ( &request("GET $path HTTP/1.1\r\nHost: $target") =~ m{^Server: Apache(.*)$}m ) {
         return $1;
     }
 }
@@ -67,10 +73,10 @@ sub check_mod_alias {
 
 sub check_mod_php {
     my $php = 0;
-    if ( &request("GET / HTTP/1.1\r\nHost: $target") =~ m{^(X-Powered-By: PHP|Set-Cookie: PHPSESSID|Server: .* PHP/)}m ) {
+    if ( &request("GET $path HTTP/1.1\r\nHost: $target") =~ m{^(X-Powered-By: PHP|Set-Cookie: PHPSESSID|Server: .* PHP/)}m ) {
         print "mod_php detected\n";
         $php = 1;
-    } elsif ( &request("GETSPHP /index.php HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)} && &request("GETSPHP /notaphp.file HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
+    } elsif ( &request("GETSPHP ${path}index.php HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)} && &request("GETSPHP ${path}notaphp.file HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
         print "mod_php detected\n";
         $php = 1;
     }
@@ -78,7 +84,7 @@ sub check_mod_php {
         print "Checking what extensions have php bindings:\n";
         foreach my $ext ('.php','.php3','.php4','.php5','.phtml','.phps') {
             print "$ext ... ";
-            if (&request("GETSPHP /index$ext HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)}) {
+            if (&request("GETSPHP ${path}index$ext HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)}) {
                 print "in use\n"
             } else {
                 print "not in use\n";
@@ -88,13 +94,13 @@ sub check_mod_php {
 }
 
 sub check_mod_caucho {
-    if ( &request("GET /caucho-status HTTP/1.0") =~ m{(Server: .* Resin/|Status : Caucho Servlet Engine)}m) {
+    if ( &request("GET ${path}caucho-status HTTP/1.0") =~ m{(Server: .* Resin/|Status : Caucho Servlet Engine)}m) {
         print "mod_caucho detected\n";
     }
 }
 
 sub check_mod_cgi {
-    if ( &request("GETCGI /cgi-bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|403|500)} && &request("GETCGI /notacgi.gob HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
+    if ( &request("GETCGI ${path}cgi-bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|403|500)} && &request("GETCGI ${path}notacgi.gob HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
         print "mod_cgi detected\n";
     }
 }
@@ -108,13 +114,13 @@ sub check_mod_deflate {
 }
 
 sub check_mod_imagemap {
-    if ( &request("GETSMAP /image.map HTTP/1.0") =~ m{^HTTP/1.. (200|404|500)} ) {
+    if ( &request("GETSMAP ${path}image.map HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|404|500)} ) {
         print "mod_imagemap detected\n";
     }
 }
 
 sub check_mod_info {
-    my $response = &request("GET /server-info HTTP/1.1\r\nHost: $target");
+    my $response = &request("GET ${path}server-info HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) {
         print "mod_info (restricted access) detected\n";
     } elsif ( $response =~ m{Apache Server Information} ) {
@@ -122,8 +128,21 @@ sub check_mod_info {
     }
 }
 
+sub check_mod_ruby {
+    if ( &request("GET ${path}index.rb HTTP/1.1\r\nHost: $target") =~ m{(Server: .*mod_ruby)}m) {
+        print "mod_ruby detected\n";
+    }
+}
+
+sub check_mod_python { #TODO add check for server headers and other extension bindings
+    if ( &request("GETPY ${path}index.psp HTTP/1.1\r\nHost: $target") =~ m{(Server: .*mod_python)}m) {
+        print "mod_python detected\n";
+    }
+}
+
+
 sub check_mod_ldap {
-    my $response = &request("GET /ldap-status HTTP/1.1\r\nHost: $target");
+    my $response = &request("GET ${path}ldap-status HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) {
         print "mod_ldap (restricted access) detected\n";
     } elsif ( $response =~ m{Apache ldap} ) {
@@ -132,13 +151,13 @@ sub check_mod_ldap {
 }
 
 sub check_mod_qos {
-    if ( &request("GET /qos HTTP/1.0") =~ m{^HTTP/1.. (200|403)} ) {
+    if ( &request("GET ${path}qos HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|403)} ) {
         print "mod_qos detected\n";
     }
 }
 
 sub check_mod_status {
-    my $response = &request("GET /server-status/ HTTP/1.1\r\nHost: $target");
+    my $response = &request("GET ${path}server-status/ HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) { 
         print "mod_status (restricted access) detected\n";
     } elsif ( $response =~ m{Apache Status} ) {
@@ -157,13 +176,13 @@ sub check_mod_setenvif {
 }
 
 sub check_Frontpage {
-    if ( &request("GET /_vti_bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 200} ) {
+    if ( &request("GET ${path}_vti_bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 200} ) {
         print "Frontpage detected\n";
     }
 }
 
 sub check_mod_proxy_balancer {
-    my $response = &request("GET /balancer-manager HTTP/1.1\r\nHost: $target");
+    my $response = &request("GET ${path}balancer-manager HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) {
         print "mod_prxy_balancer (restricted access) detected\n";
     }# elsif ( $response =~ m{Apache Server Information} ) { #Need to define strings to match
@@ -189,9 +208,9 @@ sub request {
 sub connect {
     my ($target, $port, $timout) = @_;
     if ($ssl) {
-	$sock = IO::Socket::SSL->new("$target:$port") or die "Unable to connect to $target: $!\n";
+	      $sock = IO::Socket::SSL->new("$target:$port") or die "Unable to connect to $target:$port: $!\n";
     } else {
-        $sock = IO::Socket::INET->new("$target:$port") or die "Unable to connect to $target: $!\n";
+        $sock = IO::Socket::INET->new("$target:$port") or die "Unable to connect to $target:$port: $!\n";
     }
     # Reconnect attempts?
     return 1 if ($sock);
@@ -213,10 +232,15 @@ sub _parse_uri {
     return @p;
 }
 
-       
 sub show_help {
     &banner;
-    print "Usage: $0 <uri>\n";
+    print "Usage: $0 [options] <uri>\n";
+    print "Options:\n";
+    print "  --basepath\tUse directory as root (default /)\n";
+    print "  --force\tIgnore apache server banner check\n";
+    print "  --timeout\tTimeout in seconds (default: 20)\n";
+    print "  --version\tPrints aprof version number\n";
+    print "  --help\tThis screen\n";
     exit;
 }
 
