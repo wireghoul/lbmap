@@ -1,2 +1,8 @@
+0.1 2013 Feb 05
+	aprof version 0.2
+	- Improved help
+	- HTTP/1.1 compliance
+	- Supports user defined base path
+
 0.1	2012 Apr 14
 	lbmap conceptual release
