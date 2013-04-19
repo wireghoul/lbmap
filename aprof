@@ -11,7 +11,8 @@ use Getopt::Long;
 my $VERSION = '0.2';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 my $timeout = 20;
-my ($sock, $force, $path);
+my $path = '/';
+my ($sock, $force);
 
 my $opts = GetOptions(
     "basepath=s" => \$path,
@@ -27,11 +28,11 @@ my ($ssl, $target, $port) = &_parse_uri($ARGV[0]);
 # General stuff here
 $path = "/".$path if $path !~ /^\//;
 $path = $path."/" if $path !~ /\/$/;
-print "Analysing: $target$path\n";
+print 'Analysing: '. ($ssl ? 'https' : 'http') . "://$target$path\n";
 if (!$force) {
     my $tmp = &check_is_apache;
     if (!$tmp) {
-        print "Server does not appear to be apache (run with --force if you think the server is faking it)\n";
+        print "Server does not appear to be Apache (run with --force if you think the server is faking it)\n";
         exit;
     }
     print "Server signature: Apache$tmp\n";
