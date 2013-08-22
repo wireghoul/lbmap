@@ -59,21 +59,22 @@ sub next {
 sub load {
     my ($self, $file) = @_;
     if ( -e $file) {
-	require $file;
-	return 1;
+        require $file;
+        return 1;
     }
     return 0;
 }
 
 BEGIN {
+
     # Subset of requests, demo shortlist for appsecAPAc
     @reqs = (
-	"GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
-	"GET / HTTP/1.0\nConnection: Close\n\n",
-	"GET / HTTP/1.0\rConnection: CLose\r\r",
+        "GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "GET / HTTP/1.0\nConnection: Close\n\n",
+        "GET / HTTP/1.0\rConnection: CLose\r\r",
         " \r\n\r\n",
         "/\r\n\r\n",
-	"GET /\r\n\r\n",
+        "GET /\r\n\r\n",
         "12345 GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "%47%45%54 / HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "ALL YOUR BASE ARE BELONG TO US\r\nConnection: Close\r\n\r\n",
@@ -81,28 +82,35 @@ BEGIN {
         "GET C:\ HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "GET / FTP/1.0\r\nConnection: Close\r\n\r\n",
         "GET FTP://asdfasdf HTTP/1.0\r\nConnection: Close\r\n\r\n",
-	"GET / HTTP/1.0\r\nConnection: Close\r\nContent-Length: 2000000000000000000000000000000000000000\r\n\r\n",
+        "GET / HTTP/1.0\r\nConnection: Close\r\nContent-Length: 2000000000000000000000000000000000000000\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close\r\nX-Bad header here\r\n\r\n",
         "GET / HTTP/1.0 X\r\nConnection: CLose\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 1000 ."\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 5000 . "\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 9001 . "\r\n\r\n",
-	"GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 50 . "\r\n\r\n",
+        "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 50 . "\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 100 . "\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 500 . "\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 50 . "\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 100 . "\r\n\r\n",
         "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 250 . "\r\n\r\n",
-        "OPTIONS / HTTP/1.0\r\nConnection: CLose\r\n\r\n",
-        "OPTIONS * HTTP/1.0\r\nConnection: CLose\r\n\r\n",
+        "OPTIONS / HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "OPTIONS * HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "OPTIONS #VERB\r\n\r\n",
-        "POST / HTTP/1.0\r\nContent-Length: 1000000000000000000000000000000000000000",
-);
-my @all_reqs = (
+        "POST / HTTP/1.0\r\nContent-Length: 1000000000000000000000000000000000000000\r\n\r\n",
+        "GET / HTTP/1.0\r\nMax-Forwards: 3\r\n\r\n",
+        "GET / HTTP/1.0\r\nMax-Forwards: 2\r\n\r\n",
+        "GET / HTTP/1.0\r\nMax-Forwards: 1\r\n\r\n",
+        "TRACE / HTTP/1.0\r\nMax-Forwards: 3\r\n\r\n",
+        "TRACE / HTTP/1.0\r\nMax-Forwards: 2\r\n\r\n",
+        "TRACE / HTTP/1.0\r\nMax-Forwards: 1\r\n\r\n",
+      );
+    my @all_reqs = (
         " \r\n\r\n",
         "/\r\n\r\n",
         "\0" x 70,
         "\0GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
+
         #"\0" x 1000,
         #"\0" x 1000 . "GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "12345 GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
@@ -178,10 +186,10 @@ my @all_reqs = (
         "GET / HTTP/-1.1\r\nHost: lunch",
         "GET / HTTP/1.1\r\n\r\nHost: localhost",
         "GET / HTTP/1.1\r\nUpgrade: HTTP/1.0",
-	"GET / HTTP/1.0\r\nLong-Header: " . 'A' x 1000,
-	"GET / HTTP/1.0\r\nLong-Header: " . 'A' x 5000,
-	"GET / HTTP/1.0\r\nLong-Header: " . 'A' x 9001,
-	"GET / HTTP/1.0" . "\r\nX-a: b" x 10,
+        "GET / HTTP/1.0\r\nLong-Header: " . 'A' x 1000,
+        "GET / HTTP/1.0\r\nLong-Header: " . 'A' x 5000,
+        "GET / HTTP/1.0\r\nLong-Header: " . 'A' x 9001,
+        "GET / HTTP/1.0" . "\r\nX-a: b" x 10,
         "GET / HTTP/1.2",
         "GET / HTTP/1.X",
         "GET / ".'HTTP/'.'1' x 1000 .'.0',
@@ -253,7 +261,7 @@ my @all_reqs = (
         " " x 1000,
         "/" x 1000,
         " " x 1000 . 'GET / HTTP/1.0',
-    );
+      );
 };
 
 1;

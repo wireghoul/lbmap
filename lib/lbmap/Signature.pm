@@ -34,7 +34,7 @@ lbmap::Signature converts HTTP responses to an internal representation of the re
 sub new {
     my ($class) = @_;
     my $self = {};
-    $self->{'signature'} = '01';
+    $self->{'signature'} = '02';
     return bless $self, $class;
 }
 
@@ -94,6 +94,7 @@ sub BEGIN {
         'pound' =>	'01A0A0--d1d1d1d1d1d1A0A0d1A0--A0d1A0A0A0A0BCx0A0BCx0d1d1d1--',
         'haproxy' =>	'01A0A0bcbcbcA0bcD1bcA0A0bcA0L3bcbcA0A0bcA0BCbcA0BCbcA0A0A0--',
         'varnish' =>	'01A0A0------A0BCD1BCA0A0A0A0A0A0A0A0A0--A0BCBCA0BC--A0A0X3--',
+        'IIS/6.0' => '01A0A0BCBCBC99BCD1BCA0BCBCBCL3BCBCA0A0A0A0A0A0A0A0A0A0A099--',
     };
     # TODO: Sort this by response code
     $_conversion_table = {
