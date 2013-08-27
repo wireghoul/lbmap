@@ -120,6 +120,7 @@ sub _request {
     my $response = '';
     if ( $self->_connect ) {
         eval {
+            local $SIG{PIPE} = 'IGNORE'; # Dirty hack to avoid silent exit if server closed socket`
             local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
             alarm $self->{'timeout'};
             my $socket = $self->{'socket'};
