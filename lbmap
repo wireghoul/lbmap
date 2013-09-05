@@ -6,13 +6,15 @@ use warnings;
 use Getopt::Long;
 use lib './lib';
 use lbmap::lbmap;
-use Data::Dumper;
+use Data::Dump qw(dump);
 
 my $VERSION = '0.1';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
+my $batch = 0;
 my $debug = 0;
 my $timeout = 30;
 my $opts = GetOptions(
+    'batch' => \$batch,
     'debug' => \$debug,
     'timeout' => \$timeout,
     'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
@@ -35,18 +37,23 @@ for my $uri (@uris) {
     my $lbmap = lbmap::lbmap->new('debug' => $debug, 'timeout' => $timeout);
     &banner($uri);
     my %result = $lbmap->scan($uri);
-    print Dumper(%result);
+    print dump(\%result);
 }
 
-sub show_help {
+sub show_help { # This should really be a qq block or similar
     print "Usage $0 <options> target\n";
-    print "Valid options:\n\t--debug\tprints debug information\n\t--timeout\tsets timeout in seconds (defult: 30)\n\t--version\tprints the lbmap version\n";
+    print "Valid options:\n";
+    print "\t--batch\t batch mode supresses banner output\n";
+    print "\t--debug\tprints debug information\n";
+    print "\t--timeout\tsets timeout in seconds (defult: 30)\n";
+    print "\t--version\tprints the lbmap version\n";
     print "Valid target is a single uri (http://example.com), a file (targets.txt) or - to read targets from STDIN\n";
     exit;
 }
 
 sub banner {
     my $target = shift;
+    return if $batch;
     print "lbmap - http fingerprinting tool\n";
     print "$AUTHOR - Scanning $target\n";
 }
