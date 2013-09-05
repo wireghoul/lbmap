@@ -75,6 +75,7 @@ sub scan {
     $signature->process($self); #Should probably be more elegant
     %result = %{ $self->{'result'} };
     $result{'signature'}  = $signature->signature();
+    $result{'target'} = $target;
     print "Result object:\n".Dumper(%result) if $self->{'debug'};
     return %result;
 }
