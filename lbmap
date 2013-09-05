@@ -13,10 +13,10 @@ my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 my $debug = 0;
 my $timeout = 30;
 my $opts = GetOptions(
-        'debug' => \$debug,
-	'timeout' => \$timeout,
-        'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
-);
+    'debug' => \$debug,
+    'timeout' => \$timeout,
+    'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
+  );
 my @uris;
 
 if (! $ARGV[0]) {
@@ -25,7 +25,7 @@ if (! $ARGV[0]) {
     @uris = <STDIN>;
 } elsif ( -e $ARGV[0] ) {
     open my $ifh, '<', $ARGV[0];
-        @uris = <$ifh>;
+    @uris = <$ifh>;
     close $ifh;
 } else {
     push @uris, $ARGV[0];
