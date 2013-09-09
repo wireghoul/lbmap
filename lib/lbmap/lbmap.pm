@@ -167,6 +167,8 @@ sub _load_passive {
     my $via = lbmap::Passive::Proxy->new($self);
     use lbmap::Passive::Server;
     my $server = lbmap::Passive::Server->new($self);
+    use lbmap::Passive::Redirect;
+    my $redirect = lbmap::Passive::Redirect->new($self);
 }
 
 1;
