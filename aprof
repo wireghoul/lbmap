@@ -65,7 +65,19 @@ sub check_is_apache {
 }
 
 sub check_default_host {
-    return;
+    my $hreq = &request("GET $path HTTP/1.1\r\nHost: $target");
+    my $nhreq = &request("GET $path HTTP/1.1\r\nHost: KJAISJNKDCIUW9123ejkasdnKZ");
+    if ($hreq =~ /title>(.*)<\/title/i) {
+        my $htitle = $1;
+        if ($nhreq =~ /title>(.*)<\/title/i) {
+            if ($htitle eq $1) {
+                print "Host $target is the default virtual host\n";
+                return;
+            }
+        }
+    }
+    # in all other cases
+    print "Host $target is NOT the default virtual host\n";
 }
 
 sub check_mod_alias {
