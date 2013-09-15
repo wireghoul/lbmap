@@ -176,11 +176,11 @@ sub check_mod_status {
     } elsif ( $response =~ m{Apache Status} ) {
         print "mod_status (public access";
         if ($response !~ m{ExtendedStatus On}) {
-     	    print " - full status";
+            print " - full status";
         } else {
             print " - limited status";
         }
-	print ") detected http://$target:$port/server-status/\n";
+    print ") detected http://$target:$port/server-status/\n";
     }
 }
 
@@ -221,7 +221,7 @@ sub request {
 sub connect {
     my ($target, $port, $timout) = @_;
     if ($ssl) {
-	      $sock = IO::Socket::SSL->new("$target:$port") or die "Unable to connect to $target:$port: $!\n";
+        $sock = IO::Socket::SSL->new("$target:$port") or die "Unable to connect to $target:$port: $!\n";
     } else {
         $sock = IO::Socket::INET->new("$target:$port") or die "Unable to connect to $target:$port: $!\n";
     }
@@ -258,6 +258,6 @@ sub show_help {
 }
 
 sub banner {
-    print "aprof - Apache profiler script v $VERSION\n";
-    print "Written by $AUTHOR - http://www.justanotherhacker.com\n";
+    print "aprof - Apache profiler script v$VERSION by $AUTHOR\n";
+    print "----------------------------------[ www.justanotherhacker.com ]---\n";
 }
