@@ -28,18 +28,18 @@ my ($ssl, $target, $port) = &_parse_uri($ARGV[0]);
 # General stuff here
 $path = "/".$path if $path !~ /^\//;
 $path = $path."/" if $path !~ /\/$/;
-print 'Analysing: '. ($ssl ? 'https' : 'http') . "://$target$path\n";
+&print_msg('Analysing: '. ($ssl ? 'https' : 'http') . "://$target$path\n");
 if (!$force) {
     my $tmp = &check_is_apache;
     if (!$tmp) {
-        print "Server does not appear to be Apache (run with --force if you think the server is faking it)\n";
+        &error_msg("Server does not appear to be Apache (run with --force if you think the server is faking it)\n");
         exit;
     }
-    print "Server signature: Apache$tmp\n";
+    &status_msg("Server signature: Apache$tmp\n");
 }
 
 # Module detection here
-print "Attempting to identify modules:\n";
+&status_msg("Attempting to identify modules:\n");
 &check_default_host;
 &check_mod_alias;
 &check_mod_caucho;
@@ -55,8 +55,7 @@ print "Attempting to identify modules:\n";
 &check_mod_status;
 &check_mod_setenvif;
 &check_Frontpage;
-
-print "Done!\n\n";
+&status_msg("Done!\n\n");
 
 sub check_is_apache {
     if ( &request("GET $path HTTP/1.1\r\nHost: $target") =~ m{^Server: Apache(.*)$}m ) {
@@ -71,13 +70,13 @@ sub check_default_host {
         my $htitle = $1;
         if ($nhreq =~ /title>(.*)<\/title/i) {
             if ($htitle eq $1) {
-                print "Host $target is the default virtual host\n";
+                &success_msg("Host $target is the default virtual host\n");
                 return;
             }
         }
     }
     # in all other cases
-    print "Host $target is NOT the default virtual host\n";
+    &error_msg("Host $target is NOT the default virtual host\n");
 }
 
 sub check_mod_alias {
@@ -87,20 +86,18 @@ sub check_mod_alias {
 sub check_mod_php {
     my $php = 0;
     if ( &request("GET $path HTTP/1.1\r\nHost: $target") =~ m{^(X-Powered-By: PHP|Set-Cookie: PHPSESSID|Server: .* PHP/)}m ) {
-        print "mod_php detected\n";
         $php = 1;
     } elsif ( &request("GETSPHP ${path}index.php HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)} && &request("GETSPHP ${path}notaphp.file HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
-        print "mod_php detected\n";
         $php = 1;
     }
     if ($php) {
-        print "Checking what extensions have php bindings:\n";
+        &success_msg("mod_php detected\n");
+        &status_msg("Checking what extensions have php bindings:\n");
         foreach my $ext ('.php','.php3','.php4','.php5','.phtml','.phps') {
-            print "$ext ... ";
             if (&request("GETSPHP ${path}index$ext HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)}) {
-                print "in use\n"
+                &success_msg("\t$ext in use\n");
             } else {
-                print "not in use\n";
+                &error_msg("\t$ext not in use\n");
             }
         }
     }
@@ -108,13 +105,13 @@ sub check_mod_php {
 
 sub check_mod_caucho {
     if ( &request("GET ${path}caucho-status HTTP/1.0") =~ m{(Server: .* Resin/|Status : Caucho Servlet Engine)}m) {
-        print "mod_caucho detected\n";
+        &success_msg("mod_caucho detected\n");
     }
 }
 
 sub check_mod_cgi {
     if ( &request("GETCGI ${path}cgi-bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|403|500)} && &request("GETCGI ${path}notacgi.gob HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 501} ) {
-        print "mod_cgi detected\n";
+        &success_msg("mod_cgi detected\n");
     }
 }
 
@@ -128,28 +125,28 @@ sub check_mod_deflate {
 
 sub check_mod_imagemap {
     if ( &request("GETSMAP ${path}image.map HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|404|500)} ) {
-        print "mod_imagemap detected\n";
+        &success_msg("mod_imagemap detected\n");
     }
 }
 
 sub check_mod_info {
     my $response = &request("GET ${path}server-info HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) {
-        print "mod_info (restricted access) detected\n";
+        &success_msg("mod_info (restricted access) detected\n");
     } elsif ( $response =~ m{Apache Server Information} ) {
-        print "mod_info (public access) detected - http://$target:$port/server-info\n"; # Should be parsed for 100% accurate information
+        &success_msg("mod_info (public access) detected - http://$target:$port/server-info\n"); # Should be parsed for 100% accurate information
     }
 }
 
 sub check_mod_ruby {
     if ( &request("GET ${path}index.rb HTTP/1.1\r\nHost: $target") =~ m{(Server: .*mod_ruby)}m) {
-        print "mod_ruby detected\n";
+        &success_msg("mod_ruby detected\n");
     }
 }
 
 sub check_mod_python { #TODO add check for server headers and other extension bindings
     if ( &request("GETPY ${path}index.psp HTTP/1.1\r\nHost: $target") =~ m{(Server: .*mod_python)}m) {
-        print "mod_python detected\n";
+        &success_msg("mod_python detected\n");
     }
 }
 
@@ -157,30 +154,30 @@ sub check_mod_python { #TODO add check for server headers and other extension bi
 sub check_mod_ldap {
     my $response = &request("GET ${path}ldap-status HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) {
-        print "mod_ldap (restricted access) detected\n";
+        &success_msg("mod_ldap (restricted access) detected\n");
     } elsif ( $response =~ m{Apache ldap} ) {
-        print "mod_ldap (public access) detected\n";
+        &success_msg("mod_ldap (public access) detected\n");
     }
 }
 
 sub check_mod_qos {
     if ( &request("GET ${path}qos HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|403)} ) {
-        print "mod_qos detected\n";
+        &success_msg("mod_qos detected\n");
     }
 }
 
 sub check_mod_status {
     my $response = &request("GET ${path}server-status/ HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) { 
-        print "mod_status (restricted access) detected\n";
+        &success_msg("mod_status (restricted access) detected\n");
     } elsif ( $response =~ m{Apache Status} ) {
-        print "mod_status (public access";
+        &success_msg("mod_status (public access");
         if ($response !~ m{ExtendedStatus On}) {
-            print " - full status";
+            &print_mg(" - full status");
         } else {
-            print " - limited status";
+            &print_msg(" - limited status");
         }
-    print ") detected http://$target:$port/server-status/\n";
+    &print_msg(") detected http://$target:$port/server-status/\n");
     }
 }
 
@@ -190,17 +187,15 @@ sub check_mod_setenvif {
 
 sub check_Frontpage {
     if ( &request("GET ${path}_vti_bin/ HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. 200} ) {
-        print "Frontpage detected\n";
+        &success_msg("Frontpage detected\n");
     }
 }
 
 sub check_mod_proxy_balancer {
     my $response = &request("GET ${path}balancer-manager HTTP/1.1\r\nHost: $target");
     if ( $response =~ m{^HTTP/1.. 403} ) {
-        print "mod_prxy_balancer (restricted access) detected\n";
-    }# elsif ( $response =~ m{Apache Server Information} ) { #Need to define strings to match
-     #   print "mod_info (public access) detected - http://$target:$port/server-info\n"; # Should be parsed for 100% accurate information
-    #}
+        &success_msg("mod_proxy_balancer (restricted access) detected\n");
+    }
 }
 
 
@@ -260,4 +255,20 @@ sub show_help {
 sub banner {
     print "aprof - Apache profiler script v$VERSION by $AUTHOR\n";
     print "----------------------------------[ www.justanotherhacker.com ]---\n";
+}
+
+sub success_msg {
+    print "[+] ". shift;
+}
+
+sub error_msg {
+    print "[-] ". shift;
+}
+
+sub status_msg {
+    print "[*] ". shift;
+}
+
+sub print_msg {
+    print shift;
 }
