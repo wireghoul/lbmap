@@ -46,6 +46,7 @@ if (!$force) {
 &check_mod_cgi;
 &check_mod_dav;
 &check_mod_deflate;
+&check_embperl;
 &check_mod_imagemap;
 &check_mod_info;
 &check_mod_php;
@@ -121,6 +122,12 @@ sub check_mod_dav {
 
 sub check_mod_deflate {
     return;
+}
+
+sub check_embperl {
+    if ( &request("GETSPL ${path}somefile.epl HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|404|500)} ) {
+        &success_msg("mod_perl => Embperl detected\n");
+    }
 }
 
 sub check_mod_imagemap {
