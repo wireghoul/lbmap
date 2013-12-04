@@ -52,6 +52,7 @@ if (!$force) {
 &check_mod_php;
 &check_mod_proxy_balancer;
 &check_mod_python;
+&check_mod_rivet;
 &check_mod_ruby;
 &check_mod_status;
 &check_mod_setenvif;
@@ -142,6 +143,12 @@ sub check_mod_info {
         &success_msg("mod_info (restricted access) detected\n");
     } elsif ( $response =~ m{Apache Server Information} ) {
         &success_msg("mod_info (public access) detected - http://$target:$port/server-info\n"); # Should be parsed for 100% accurate information
+    }
+}
+
+sub check_mod_rivet {
+    if ( &request("GET ${path}index.rvt HTTP/1.1\r\nHost: $target") =~ m{(Server: .*Rivet)} ) {
+      &success_msg("mod_rivet detected\n");
     }
 }
 
