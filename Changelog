@@ -1,8 +1,26 @@
+0.3 2013 Dec 04
+lbmap version 0.3
+- Added batch mode to so output can easily be consumed via perl
+- Bug fixes for some requests causing timeouts
+- Bug fix for SIGPIPE termination
+- More/better detection rules
+- Passive collection of redirection urls
+- Improved text data representation
+- Changed dependincies from Data::Dumper to Data::Dump
+- Code quality changes
+aprof version 0.3
+- Embperl detection
+- mod_rivet detection
+- More readable output
+- Uses proper ascii status indicators for text output
+- Added default vhost detection
+- Several code quality fixes
+
 0.1 2013 Feb 05
-	aprof version 0.2
-	- Improved help
-	- HTTP/1.1 compliance
-	- Supports user defined base path
+aprof version 0.2
+- Improved help
+- HTTP/1.1 compliance
+- Supports user defined base path
 
 0.1	2012 Apr 14
-	lbmap conceptual release
+lbmap conceptual release

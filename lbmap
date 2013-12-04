@@ -8,7 +8,7 @@ use lib './lib';
 use lbmap::lbmap;
 use Data::Dump qw(dump);
 
-my $VERSION = '0.1';
+my $VERSION = '0.3';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 my $batch = 0;
 my $debug = 0;
