@@ -27,6 +27,7 @@ sub new {
     my $self = {};
     $self->{'parent'} = $parent;
     bless $self, $class;
+    $self->{'parent'}->add_passive_detect('BIGipv4regex', 'Set-Cookie: .*=\d+\.\d+\.\d{4}', \&decode_bigipv4 );
     $self->{'parent'}->add_passive_detect('BIGipv4', 'Set-Cookie: BIGip.*=\d+\.\d+\.\d+', \&decode_bigipv4 );
     $self->{'parent'}->add_passive_detect('BIGipv6', 'Set-Cookie: BIGip.*=vi.*', \&decode_bigipv6 );
     $self->{'parent'}->add_passive_detect('BIGiprd', 'Set-Cookie: BIGip.*=rd.+o00000000000000000000ffff.+o.+', \&decode_bigiproutedomain );
@@ -36,7 +37,7 @@ sub new {
 
 sub decode_bigipv4 {
     my ($parent, $http_response) = @_;
-    if ($http_response =~ m/Set-Cookie: (BIGip.*)=(\d+)\.(\d+)\.(\d+)/o) {
+    if ($http_response =~ m/Set-Cookie: (.*)=(\d+)\.(\d+)\.(\d+)/o) {
         my ($pool, $host, $port, $wat) = ($1, $2, $3, $4);
         my $backend = join ".", map {hex} reverse ((sprintf "%08x", $host) =~ /../g);
         $backend.=":".hex join "", reverse((sprintf "%02x", $port) =~ /../g);
