@@ -30,12 +30,13 @@ $path = "/".$path if $path !~ /^\//;
 $path = $path."/" if $path !~ /\/$/;
 &print_msg('Analysing: '. ($ssl ? 'https' : 'http') . "://$target$path\n");
 if (!$force) {
-    my $tmp = &check_is_apache;
-    if (!$tmp) {
-        &error_msg("Server does not appear to be Apache (run with --force if you think the server is faking it)\n");
+    my $tmp = &check_server;
+    chop($tmp);
+    if ($tmp !~ /Apache/) {
+        &error_msg("Not Apache ($tmp)! Use --force if you think the server is faking it.\n");
         exit;
     }
-    &status_msg("Server signature: Apache$tmp\n");
+    &status_msg("Server signature: $tmp\n");
 }
 
 # Module detection here
@@ -59,8 +60,8 @@ if (!$force) {
 &check_Frontpage;
 &status_msg("Done!\n\n");
 
-sub check_is_apache {
-    if ( &request("GET $path HTTP/1.1\r\nHost: $target") =~ m{^Server: Apache(.*)$}m ) {
+sub check_server {
+    if ( &request("GET $path HTTP/1.1\r\nHost: $target") =~ m{^Server: (.*)$}m ) {
         return $1;
     }
 }
@@ -187,7 +188,7 @@ sub check_mod_status {
     } elsif ( $response =~ m{Apache Status} ) {
         &success_msg("mod_status (public access");
         if ($response !~ m{ExtendedStatus On}) {
-            &print_mg(" - full status");
+            &print_msg(" - full status");
         } else {
             &print_msg(" - limited status");
         }
