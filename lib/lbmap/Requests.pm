@@ -112,7 +112,6 @@ BEGIN {
         "/\r\n\r\n",
         "\0" x 70,
         "\0GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
-
         #"\0" x 1000,
         #"\0" x 1000 . "GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "12345 GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
