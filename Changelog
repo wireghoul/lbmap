@@ -4,6 +4,7 @@ lbmap version 0.4
 - More passive detection modules
 - More accurate detection for more known agents (Kemp, Bluecoat, Pound, Haproxy
   Varnish and more)
+- Added support for url/path based loadbalancing
 - More IDS friendly rules *TODO*
 - Removed slow requests *TODO*
 - Cleaner output
