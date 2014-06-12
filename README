@@ -1,4 +1,4 @@
-Proof of concept scripts for advanced web application fingerprinting, presented at
+Proof of concept scripts for advanced HTTP fingerprinting, presented at
 OWASP AppSecAsia 2012. These scripts should be considered a PoC or alpha quality.
 Suggestions, recommendations, signatures, pathces and flames are welcome via
 http://www.github.com/wireghoul/lbmap.
