@@ -30,10 +30,14 @@ lbmap::Requests iterates through a database of requests.
 =cut
 
 sub new {
-    my ($class) = @_;
+    my ($class, $host, $path) = @_;
     my $self = {};
+    $self->{'host'} = $host;
+    $self->{'path'} = $path;
     $self->{'_rindex'} = -1; #Lazy fix to avoid off by one issues with while (lbmap::Request->next) invocation
-    return bless $self, $class;
+    my $obj =bless $self, $class;
+    $obj->populate_reqs;
+    return $obj;
 }
 
 sub request {
@@ -65,47 +69,48 @@ sub load {
     return 0;
 }
 
-BEGIN {
-
-    # Subset of requests, demo shortlist for appsecAPAc
+sub populate_reqs {
+    my $self = shift;
+    my $path = $self->{'path'};
+    # Subset of requests, needs tuning
     @reqs = (
-        "GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
-        "GET / HTTP/1.0\nConnection: Close\n\n",
-        "GET / HTTP/1.0\rConnection: CLose\r\r",
+        "GET $path HTTP/1.0\r\nConnection: Close\r\nHost: $self->{'host'}\r\nUser-Agent: Mozilla/4.0\r\n\r\n",
+        "GET $path HTTP/1.0\nConnection: Close\n\n",
+        "GET $path HTTP/1.0\rConnection: Close\r\r",
         " \r\n\r\n",
-        "/\r\n\r\n",
-        "GET /\r\n\r\n",
-        "GET /" . "A" x 1000 . " HTTP/1.0\r\nConnection: Close\r\n\r\n",
-        "GET /" . "A" x 10000 . " HTTP/1.0\r\nConnection: Close\r\n\r\n",
-        "12345 GET / HTTP/1.0\r\nConnection: Close\r\n\r\n",
-        "%47%45%54 / HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "$path\r\n\r\n",
+        "GET $path\r\n\r\n",
+        "GET $path" . "A" x 1000 . " HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "GET $path" . "A" x 10000 . " HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "12345 GET $path HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "%47%45%54 $path HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "ALL YOUR BASE ARE BELONG TO US\r\nConnection: Close\r\n\r\n",
-        "GET /?abc=%GG HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "GET $path?abc=%GG HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "GET C:\\ HTTP/1.0\r\nConnection: Close\r\n\r\n",
-        "GET / FTP/1.0\r\nConnection: Close\r\n\r\n",
+        "GET $path FTP/1.0\r\nConnection: Close\r\n\r\n",
         "GET FTP://asdfasdf HTTP/1.0\r\nConnection: Close\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close\r\nContent-Length: 2000000000000000000000000000000000000000\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close\r\nX-Bad header here\r\n\r\n",
-        "GET / HTTP/1.0 X\r\nConnection: Close\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 1000 ."\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 5000 . "\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 9001 . "\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 50 . "\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 100 . "\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 500 . "\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 50 . "\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 100 . "\r\n\r\n",
-        "GET / HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 250 . "\r\n\r\n",
-        "OPTIONS / HTTP/1.0\r\nConnection: Close\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close\r\nContent-Length: 2000000000000000000000000000000000000000\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close\r\nX-Bad header here\r\n\r\n",
+        "GET $path HTTP/1.0 X\r\nConnection: Close\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 1000 ."\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 5000 . "\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close\r\nLong-Header: " . 'A' x 9001 . "\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 50 . "\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 100 . "\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: A" x 500 . "\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 50 . "\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 100 . "\r\n\r\n",
+        "GET $path HTTP/1.0\r\nConnection: Close" . "\r\nX-Many: 0123456789012345678901234567890" x 250 . "\r\n\r\n",
+        "OPTIONS $path HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "OPTIONS * HTTP/1.0\r\nConnection: Close\r\n\r\n",
         "OPTIONS #VERB\r\n\r\n",
-        "POST / HTTP/1.0\r\nContent-Length: 1000000000000000000000000000000000000000\r\n\r\n",
-        "GET / HTTP/1.0\r\nMax-Forwards: 3\r\n\r\n",
-        "GET / HTTP/1.0\r\nMax-Forwards: 2\r\n\r\n",
-        "GET / HTTP/1.0\r\nMax-Forwards: 1\r\n\r\n",
-        "TRACE / HTTP/1.0\r\nMax-Forwards: 3\r\n\r\n",
-        "TRACE / HTTP/1.0\r\nMax-Forwards: 2\r\n\r\n",
-        "TRACE / HTTP/1.0\r\nMax-Forwards: 1\r\n\r\n",
+        "POST $path HTTP/1.0\r\nContent-Length: 1000000000000000000000000000000000000000\r\n\r\n",
+        "GET $path HTTP/1.0\r\nMax-Forwards: 3\r\n\r\n",
+        "GET $path HTTP/1.0\r\nMax-Forwards: 2\r\n\r\n",
+        "GET $path HTTP/1.0\r\nMax-Forwards: 1\r\n\r\n",
+        "TRACE $path HTTP/1.0\r\nMax-Forwards: 3\r\n\r\n",
+        "TRACE $path HTTP/1.0\r\nMax-Forwards: 2\r\n\r\n",
+        "TRACE $path HTTP/1.0\r\nMax-Forwards: 1\r\n\r\n",
       );
     my @all_reqs = (
         " \r\n\r\n",

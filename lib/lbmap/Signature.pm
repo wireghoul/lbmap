@@ -43,7 +43,7 @@ sub add_response {
     my ( $self, $http_response ) = @_;
     my $code         = ' ';
     my $http_version = '0.9';
-    if ( $http_response =~ /^(HTTP\/...) (...) (.*)?\r\n/ ) {
+    if ( $http_response =~ /^(HTTP\/...) (...) (.*)?[\r\n]/ ) { # Either \r or \n as not all servers are CRLF compliant
         $code         = $2;
         $http_version = $1;
     }
@@ -114,6 +114,7 @@ sub BEGIN {
         '503' => 'x3',    # Usually means missing backend server
         '401' => 'd1',    # Authorization required
         '403' => 'd3',    # Denied
+        '406' => 'n6',    # Not acceptable
         '501' => 'n1',    # Method not implemented
         '405' => 'd5',    # Method not allowed
         '400' => 'bc',    # Bad request (parser)

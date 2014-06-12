@@ -28,6 +28,7 @@ sub new {
     $self->{'parent'} = $parent;
     bless $self, $class;
     $self->{'parent'}->add_passive_detect('Server_header', 'Server: .*', \&detect_server_header );
+    $self->{'parent'}->add_passive_detect('Etag_header', 'ETag: .*',\&detect_etag_header );
     return $self;
 }
 

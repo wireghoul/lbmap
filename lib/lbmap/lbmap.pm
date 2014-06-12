@@ -54,8 +54,8 @@ sub scan {
     my ($self, $target) = @_;
     my %result;
     print "Starting scan\n" if $self->{'debug'};
-    ($self->{'ssl'}, $self->{'host'}, $self->{'port'}) = $self->_parse_uri($target);
-    my $requests = lbmap::Requests->new;
+    ($self->{'ssl'}, $self->{'host'}, $self->{'port'}, $self->{'path'}) = $self->_parse_uri($target);
+    my $requests = lbmap::Requests->new($self->{'host'}, $self->{'path'});
     my $signature = lbmap::Signature->new;
     while ($requests->next) {
         print "Sending request [".$requests->{'_rindex'} ."]\n" if $self->{'debug'};
@@ -76,7 +76,7 @@ sub scan {
     %result = %{ $self->{'result'} };
     $result{'signature'}  = $signature->signature();
     $result{'target'} = $target;
-    print "Result object:\n".Dumper(%result) if $self->{'debug'};
+#    print "Result object:\n".Dumper(%result) if $self->{'debug'};
     return %result;
 }
 
@@ -97,21 +97,25 @@ sub add_passive_detect {
 
 sub add_result {
     my ($self, $category, $value) = @_;
+    $category = lc $category; # No case sensitivity dupes plz
     $self->{'result'}{$category}{$value}++;
 }
 
 sub _parse_uri {
     my ($self, $uri) = @_;
-    my @p = (0, '', 80); #Defaults
+    my @p = (0, '', 80, '/'); #Defaults
     # Quick fix to handle uri's without protocol designation
     $uri = "http://$uri" if ($uri !~ m!://!);
     $p[0] = 1 if ($uri =~ m!^https://!);
-    $uri =~ m!https?://([^:/]+):?(\d+)?/?!;
+    $uri =~ m!https?://([^:/]+):?(\d+)?(/.*)?!;
     $p[1] = $1;
     if ($2) {
         $p[2]=$2;
     } elsif ($p[0]) {
         $p[2]=443;
+    }
+    if ($3) {
+        $p[3] = $3;
     }
     return @p;
 }
@@ -161,14 +165,18 @@ sub _load_passive {
     #    require $plugin;
     #}
     # Hard coded reference to test callbacks
-    use lbmap::Passive::BigIP;
-    my $bigip = lbmap::Passive::BigIP->new($self);
+    use lbmap::Passive::Cookie;
+    my $bigip = lbmap::Passive::Cookie->new($self);
     use lbmap::Passive::Proxy;
     my $via = lbmap::Passive::Proxy->new($self);
     use lbmap::Passive::Server;
     my $server = lbmap::Passive::Server->new($self);
     use lbmap::Passive::Redirect;
     my $redirect = lbmap::Passive::Redirect->new($self);
+    use lbmap::Passive::Content;
+    my $contentsigs = lbmap::Passive::Content->new($self);
+    use lbmap::Passive::Response;
+    my $responses = lbmap::Passive::Response->new($self);
 }
 
 1;
