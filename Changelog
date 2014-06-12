@@ -1,3 +1,14 @@
+0.4 2014 ??? ??
+lbmap version 0.4
+- Minor documentation changes
+- More passive detection modules
+- More accurate detection for more known agents (Kemp, Bluecoat, Pound, Haproxy
+  Varnish and more)
+- More IDS friendly rules *TODO*
+- Removed slow requests *TODO*
+- Cleaner output
+- Various bugfixes to reduce false positives
+
 0.3 2013 Dec 04
 lbmap version 0.3
 - Added batch mode to so output can easily be consumed via perl
