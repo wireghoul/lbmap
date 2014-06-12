@@ -8,7 +8,7 @@ use lib './lib';
 use lbmap::lbmap;
 use Data::Dump qw(dump);
 
-my $VERSION = '0.3';
+my $VERSION = '0.4';
 my $AUTHOR = 'Eldar "Wireghoul" Marcussen';
 my $batch = 0;
 my $debug = 0;
@@ -20,7 +20,7 @@ my $opts = GetOptions(
     'version' => sub { print "lbmap version: $VERSION\n"; exit 0; }
   );
 my @uris;
-
+&banner;
 if (! $ARGV[0]) {
     &show_help;
 } elsif ($ARGV[0] eq '-') {
@@ -35,9 +35,9 @@ if (! $ARGV[0]) {
 chomp(@uris);
 for my $uri (@uris) {
     my $lbmap = lbmap::lbmap->new('debug' => $debug, 'timeout' => $timeout);
-    &banner($uri);
+    &scan_status($uri);
     my %result = $lbmap->scan($uri);
-    print dump(\%result);
+    print dump(\%result)."\n";
 }
 
 sub show_help { # This should really be a qq block or similar
@@ -52,8 +52,13 @@ sub show_help { # This should really be a qq block or similar
 }
 
 sub banner {
+    return if $batch;
+    print "lbmap - HTTP fingerprinting tool v$VERSION by $AUTHOR\n";
+    print "====================================[ www.justanotherhacker.com ]===\n";
+}
+
+sub scan_status {
     my $target = shift;
     return if $batch;
-    print "lbmap - http fingerprinting tool\n";
-    print "$AUTHOR - Scanning $target\n";
+    print "[*] Scanning $target\n";
 }
