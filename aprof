@@ -268,8 +268,8 @@ sub show_help {
 }
 
 sub banner {
-    print "aprof - Apache profiler script v$VERSION by $AUTHOR\n";
-    print "----------------------------------[ www.justanotherhacker.com ]---\n";
+    print "aprof - Apache profiler tool v$VERSION by $AUTHOR\n";
+    print "================================[ www.justanotherhacker.com ]===\n";
 }
 
 sub success_msg {
