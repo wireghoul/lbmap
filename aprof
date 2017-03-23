@@ -50,6 +50,7 @@ if (!$force) {
 &check_embperl;
 &check_mod_imagemap;
 &check_mod_info;
+&check_mod_mime;
 &check_mod_php;
 &check_mod_proxy_balancer;
 &check_mod_python;
@@ -96,11 +97,9 @@ sub check_mod_php {
     if ($php) {
         &success_msg("mod_php detected\n");
         &status_msg("Checking what extensions have php bindings:\n");
-        foreach my $ext ('.php','.php3','.php4','.php5','.phtml','.phps') {
+        foreach my $ext ('.php','.php3','.php4','.php5','.php7','.pht','.phtm','.phtml','.phps') {
             if (&request("GETSPHP ${path}index$ext HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|30[12]|404|500)}) {
                 &success_msg("\t$ext in use\n");
-            } else {
-                &error_msg("\t$ext not in use\n");
             }
         }
     }
@@ -131,6 +130,13 @@ sub check_embperl {
         &success_msg("mod_perl => Embperl detected\n");
     }
 }
+
+sub check_mod_mime {
+    if ( &request("GETSVAR ${path}somefile.var HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|404|500)} ) {
+        &success_msg("mod_mime detected\n");
+    }
+}
+
 
 sub check_mod_imagemap {
     if ( &request("GETSMAP ${path}image.map HTTP/1.1\r\nHost: $target") =~ m{^HTTP/1.. (200|404|500)} ) {
