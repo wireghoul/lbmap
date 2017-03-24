@@ -69,6 +69,9 @@ sub load_content_map {
         '6c13efb22d910e0bcfa6d3f58d5716ab' => ['webserver', 'IIS'], # Error 400. The request is badly formed
         '93b17548f8f23ad8a33060f706baca1d' => ['webserver', 'IIS'], # Error 400. The request URL is invalid
         '42006f6a9ef6f30f466e2d2ee281b197' => ['webserver', 'IIS'], # Request entity too large
+        # WebSphere
+        '5d8385bf82de001a2bf8b09735c8d99b' => ['webserver', 'IBM WebSphere'], # SRVE0190E: File not found
+        '928372a09abc954d3e405013589acf76' => ['webserver', 'IBM WebSphere'], # SRVE0190E: File not found chunked encoding
         # etc
     );
 }

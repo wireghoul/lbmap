@@ -60,6 +60,7 @@ sub scan {
     while ($requests->next) {
         print "Sending request [".$requests->{'_rindex'} ."]\n" if $self->{'debug'};
         my $response = $self->_request($requests->request);
+        print "RQRQ\n".$requests->request."\n\n" if $self->{'debug'};;
         print "Got response\n" if $self->{'debug'};
         foreach my $name (keys(%{ $self->{'passive'} })) {
             print "Processing plugin $name\n" if $self->{'debug'};

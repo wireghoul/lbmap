@@ -29,6 +29,7 @@ sub new {
     bless $self, $class;
     $self->{'parent'}->add_passive_detect('Server_header', 'Server: .*', \&detect_server_header );
     $self->{'parent'}->add_passive_detect('Etag_header', 'ETag: .*',\&detect_etag_header );
+    $self->{'parent'}->add_passive_detect('WebSphere header', '$WSEP:', \&detect_wsep_header );
     return $self;
 }
 
@@ -43,6 +44,13 @@ sub detect_etag_header {
     my ($parent, $http_response) = @_;
     if ($http_response =~ m/ETag: ".+-.+-.+"/) {
         $parent->add_result('webserver', 'Apache');
+    }
+}
+
+sub detect_wsep_header {
+    my ($parent, $http_response) = @_;
+    if ($http_response =~ m/\$WSEP:/) {
+        $parent->add_result('webserver', 'IBM WebSphere');
     }
 }
 
